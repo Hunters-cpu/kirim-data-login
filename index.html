@@ -1,0 +1,1784 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Waa-O51W — Bisnis Digital & Portofolio</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <style>
+        :root {
+            --bg: #06080f; --bg2: #0a0e1a; --card: #0c1018; --card2: #101624;
+            --border: rgba(255,255,255,0.07); --border-hi: rgba(139,92,246,0.35);
+            --text: #ffffff; --text2: #94a3b8; --text3: #64748b;
+            --accent: #6366f1; --orange2: #fb923c; --green: #10b981;
+            --gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
+        html { scroll-behavior: smooth; }
+        body {
+            background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden;
+            background-image:
+                radial-gradient(circle at 20% 0%, rgba(99,102,241,0.10) 0%, transparent 40%),
+                radial-gradient(circle at 80% 100%, rgba(168,85,247,0.08) 0%, transparent 40%);
+            background-attachment: fixed;
+        }
+        .app { max-width: 480px; margin: 0 auto; padding: 0 0 24px; }
+        @media (min-width: 768px) { .app { max-width: 720px; } }
+        @media (min-width: 1024px) { .app { max-width: 1080px; } }
+        .page { display: none; }
+        .page.active { display: block; animation: fade 0.35s ease; }
+        @keyframes fade { 0% { opacity: 0; transform: translateY(8px); } 100% { opacity: 1; transform: translateY(0); } }
+
+        /* TOPBAR */
+        .topbar {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 14px 16px; position: sticky; top: 0;
+            background: rgba(6,8,15,0.85); backdrop-filter: blur(20px);
+            z-index: 50; border-bottom: 1px solid var(--border);
+        }
+        .topbar-brand { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 15px; letter-spacing: -0.3px; cursor: pointer; }
+        .topbar-icons { display: flex; gap: 8px; }
+        .tb-icon {
+            width: 34px; height: 34px; border-radius: 10px; background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border); display: flex; align-items: center; justify-content: center;
+            color: var(--text2); cursor: pointer; font-size: 13px; transition: 0.2s;
+        }
+        .tb-icon:hover { background: rgba(255,255,255,0.07); color: var(--text); }
+
+        /* ============ PROFILE CARD UTAMA ============ */
+        .profile-main-card {
+            margin: 14px 16px 16px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 22px;
+            padding: 16px;
+            position: relative;
+            overflow: hidden;
+        }
+        .profile-main-card::before {
+            content: '';
+            position: absolute; top: -80px; right: -80px;
+            width: 200px; height: 200px; border-radius: 50%;
+            background: radial-gradient(circle, rgba(139,92,246,0.15) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        /* AREA FOTO PROFIL (BESAR - persegi panjang) */
+        .profile-photo-area {
+            width: 100%;
+            aspect-ratio: 16/11;
+            background: rgba(255,255,255,0.025);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            transition: 0.25s;
+        }
+        .profile-photo-area:hover {
+            border-color: var(--border-hi);
+            background: rgba(139,92,246,0.04);
+        }
+        .profile-photo-area img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .profile-photo-placeholder {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            color: var(--text3);
+            pointer-events: none;
+        }
+        .profile-photo-placeholder i {
+            font-size: 52px;
+            opacity: 0.4;
+            color: var(--text2);
+        }
+        .profile-photo-placeholder .pp-label {
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--text2);
+            letter-spacing: -0.2px;
+        }
+        /* Overlay edit */
+        .profile-photo-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(6,8,15,0.7);
+            backdrop-filter: blur(4px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            opacity: 0;
+            transition: 0.25s;
+            color: #fff;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+        .profile-photo-area:hover .profile-photo-overlay { opacity: 1; }
+        .profile-photo-overlay i { font-size: 24px; color: #a78bfa; }
+
+        /* INFO NAMA & BIO DI BAWAH FOTO */
+        .profile-main-info {
+            text-align: center;
+            padding-top: 20px;
+        }
+        .profile-main-name {
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: -1px;
+            line-height: 1.1;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            color: var(--text);
+        }
+        .profile-main-name .verified-badge {
+            color: #a78bfa;
+            font-size: 20px;
+            filter: drop-shadow(0 0 8px rgba(139,92,246,0.6));
+        }
+        .profile-main-bio {
+            font-size: 13.5px;
+            color: var(--text2);
+            line-height: 1.5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .profile-main-bio .bio-icon {
+            font-size: 14px;
+            opacity: 0.8;
+        }
+        .profile-main-tagline {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 14px;
+            font-size: 10.5px;
+            font-weight: 600;
+            color: var(--text3);
+            background: rgba(255,255,255,0.02);
+            padding: 5px 12px;
+            border-radius: 100px;
+            border: 1px solid var(--border);
+            letter-spacing: 0.2px;
+        }
+        .profile-main-tagline i { color: #8b5cf6; font-size: 10px; }
+
+        /* SOCIAL GRID */
+        .social-grid {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
+            padding: 0 16px; margin-bottom: 16px;
+        }
+        .social-tile {
+            background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+            padding: 12px 8px; display: flex; flex-direction: column; align-items: center;
+            gap: 8px; text-decoration: none; color: var(--text); transition: 0.25s;
+        }
+        .social-tile:hover { border-color: var(--border-hi); transform: translateY(-2px); background: var(--card2); }
+        .st-icon { width: 38px; height: 38px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 16px; color: #fff; }
+        .st-icon.ig { background: linear-gradient(135deg, #f09433, #dc2743, #bc1888); }
+        .st-icon.yt { background: #ff0000; }
+        .st-icon.tt { background: #000; border: 1px solid rgba(255,255,255,0.1); }
+        .st-icon.em { background: var(--gradient); }
+        .st-label { font-size: 10px; font-weight: 500; color: var(--text2); text-align: center; }
+
+        /* AD INSPIRATION */
+        .ad-card {
+            margin: 0 16px 16px;
+            background: linear-gradient(135deg, #1a1530 0%, #0f0d1f 100%);
+            border: 1px solid rgba(249,115,22,0.2); border-radius: 18px;
+            padding: 16px; position: relative; overflow: hidden;
+        }
+        .ad-card::before {
+            content: ''; position: absolute; top: -60px; right: -60px;
+            width: 180px; height: 180px; background: radial-gradient(circle, rgba(249,115,22,0.18) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        .ad-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .ad-trend {
+            display: inline-flex; align-items: center; gap: 5px;
+            background: rgba(249,115,22,0.15); border: 1px solid rgba(249,115,22,0.3);
+            color: var(--orange2); font-size: 9.5px; font-weight: 700;
+            padding: 4px 10px; border-radius: 100px; letter-spacing: 0.6px; text-transform: uppercase;
+        }
+        .ad-arrow {
+            width: 30px; height: 30px; border-radius: 50%;
+            background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: center;
+            color: var(--text2); font-size: 11px;
+        }
+        .ad-title { font-size: 18px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 6px; }
+        .ad-desc { font-size: 11.5px; color: var(--text2); line-height: 1.55; margin-bottom: 14px; }
+        .ad-footer { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+        .ad-counter { display: flex; align-items: center; gap: 5px; font-size: 10.5px; color: var(--text3); }
+        .ad-counter i { color: var(--orange2); }
+        .ad-btn {
+            background: linear-gradient(135deg, #f97316, #ea580c); color: #fff;
+            padding: 7px 14px; border-radius: 100px; font-size: 10.5px; font-weight: 600;
+            text-decoration: none; display: inline-flex; align-items: center; gap: 5px;
+            box-shadow: 0 6px 16px rgba(249,115,22,0.3); transition: 0.2s;
+        }
+        .ad-btn:hover { transform: translateY(-1px); }
+
+        /* MENU GRID */
+        .menu-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; padding: 0 16px; margin-bottom: 16px; }
+        @media (min-width: 768px) { .menu-grid { grid-template-columns: repeat(4, 1fr); } }
+        .menu-card {
+            background: var(--card); border: 1px solid var(--border); border-radius: 18px;
+            padding: 16px; text-decoration: none; color: var(--text);
+            display: flex; flex-direction: column; gap: 4px; transition: 0.25s;
+            position: relative; overflow: hidden; min-height: 140px;
+        }
+        .menu-card:hover { border-color: var(--border-hi); background: var(--card2); transform: translateY(-2px); box-shadow: 0 16px 32px rgba(0,0,0,0.35); }
+        .mc-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+        .mc-icon { width: 38px; height: 38px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 15px; }
+        .mc-icon.purple { background: rgba(139,92,246,0.15); color: #a78bfa; border: 1px solid rgba(139,92,246,0.25); }
+        .mc-icon.green { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.25); }
+        .mc-icon.blue { background: rgba(59,130,246,0.15); color: #60a5fa; border: 1px solid rgba(59,130,246,0.25); }
+        .mc-icon.orange { background: rgba(249,115,22,0.15); color: var(--orange2); border: 1px solid rgba(249,115,22,0.25); }
+        .mc-badge { font-size: 9px; font-weight: 700; padding: 3px 8px; border-radius: 100px; letter-spacing: 0.4px; display: inline-flex; align-items: center; gap: 4px; }
+        .mc-badge.live { background: rgba(16,185,129,0.12); color: #34d399; }
+        .mc-badge.live::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: #10b981; box-shadow: 0 0 6px #10b981; }
+        .mc-badge.percent { background: rgba(139,92,246,0.15); color: #a78bfa; }
+        .mc-badge.pro { background: rgba(249,115,22,0.15); color: var(--orange2); }
+        .mc-title { font-size: 14px; font-weight: 700; letter-spacing: -0.3px; line-height: 1.25; margin-top: 4px; }
+        .mc-sub { font-size: 10.5px; color: var(--text3); line-height: 1.4; margin-bottom: 10px; }
+        .mc-footer { display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 10px; border-top: 1px solid var(--border); }
+        .mc-foot-label { font-size: 10.5px; font-weight: 600; color: var(--text2); }
+        .mc-foot-arrow { font-size: 10.5px; color: #a78bfa; font-weight: 600; }
+
+        /* CONTACT CTA */
+        .contact-cta {
+            margin: 0 16px 20px;
+            background: linear-gradient(135deg, rgba(99,102,241,0.12) 0%, rgba(168,85,247,0.08) 100%);
+            border: 1px solid rgba(139,92,246,0.25); border-radius: 18px; padding: 18px;
+            display: flex; flex-direction: column; gap: 14px;
+        }
+        @media (min-width: 640px) { .contact-cta { flex-direction: row; align-items: center; justify-content: space-between; } }
+        .cta-left { display: flex; align-items: center; gap: 12px; }
+        .cta-icon {
+            width: 48px; height: 48px; border-radius: 14px; background: var(--gradient);
+            display: flex; align-items: center; justify-content: center; font-size: 18px; color: #fff;
+            flex-shrink: 0; box-shadow: 0 10px 24px rgba(99,102,241,0.4);
+        }
+        .cta-text .cta-title { font-size: 14px; font-weight: 700; letter-spacing: -0.3px; display: flex; align-items: center; gap: 6px; margin-bottom: 2px; }
+        .cta-badge { background: rgba(249,115,22,0.15); color: var(--orange2); font-size: 8.5px; font-weight: 700; padding: 2px 7px; border-radius: 100px; letter-spacing: 0.4px; }
+        .cta-text .cta-desc { font-size: 11px; color: var(--text2); line-height: 1.5; }
+        .cta-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+        .cta-btn {
+            flex: 1; min-width: 120px; padding: 10px 14px; border-radius: 12px;
+            font-size: 11.5px; font-weight: 600; text-decoration: none;
+            display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+            transition: 0.2s; letter-spacing: -0.1px; border: none; cursor: pointer;
+        }
+        .cta-btn.wa { background: linear-gradient(135deg, #10b981, #059669); color: #fff; box-shadow: 0 8px 20px rgba(16,185,129,0.3); }
+        .cta-btn.wa:hover { transform: translateY(-1px); }
+        .cta-btn.form { background: rgba(255,255,255,0.04); color: var(--text); border: 1px solid var(--border); }
+        .cta-btn.form:hover { background: rgba(255,255,255,0.08); }
+
+        /* SECTION HEADER */
+        .sec-head { padding: 20px 16px 12px; display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; flex-wrap: wrap; }
+        .sec-head-left .sh-badge {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: rgba(139,92,246,0.12); border: 1px solid rgba(139,92,246,0.25);
+            color: #a78bfa; font-size: 9.5px; font-weight: 700;
+            padding: 4px 10px; border-radius: 100px; letter-spacing: 0.6px; text-transform: uppercase; margin-bottom: 8px;
+        }
+        .sec-head-left .sh-title { font-size: 18px; font-weight: 800; letter-spacing: -0.5px; line-height: 1.2; margin-bottom: 4px; }
+        .sec-head-left .sh-desc { font-size: 11px; color: var(--text3); line-height: 1.5; }
+        .sec-head-right .sh-auto {
+            display: inline-flex; align-items: center; gap: 5px;
+            font-size: 10px; color: var(--text3); background: rgba(255,255,255,0.02);
+            padding: 5px 11px; border-radius: 100px; border: 1px solid var(--border);
+        }
+        .sec-head-right .sh-auto .dot { width: 5px; height: 5px; border-radius: 50%; background: #8b5cf6; box-shadow: 0 0 8px #8b5cf6; }
+
+        /* SHOWCASE */
+        .showcase { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; padding: 0 16px 16px; }
+        @media (min-width: 900px) { .showcase { grid-template-columns: repeat(3, 1fr); } }
+        .showcase-card {
+            background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+            padding: 10px; transition: 0.25s; cursor: pointer;
+        }
+        .showcase-card:hover { border-color: var(--border-hi); transform: translateY(-2px); background: var(--card2); }
+        .sc-thumb {
+            width: 100%; aspect-ratio: 16/10; border-radius: 12px; background: #080a12;
+            overflow: hidden; position: relative; border: 1px solid var(--border); margin-bottom: 10px;
+        }
+        .sc-thumb img { width: 100%; height: 100%; object-fit: cover; }
+        .sc-thumb::before { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 60%, rgba(0,0,0,0.5) 100%); pointer-events: none; }
+        .sc-dots { position: absolute; top: 8px; left: 8px; display: flex; gap: 3px; }
+        .sc-dots span { width: 6px; height: 6px; border-radius: 50%; }
+        .sc-dots span:nth-child(1) { background: #ef4444; }
+        .sc-dots span:nth-child(2) { background: #f59e0b; }
+        .sc-dots span:nth-child(3) { background: #10b981; }
+        .sc-price {
+            position: absolute; top: 8px; right: 8px;
+            background: rgba(16,185,129,0.95); color: #fff; font-size: 9.5px; font-weight: 700;
+            padding: 3px 8px; border-radius: 100px; letter-spacing: 0.2px;
+        }
+        .sc-info .sc-name { font-size: 12.5px; font-weight: 700; letter-spacing: -0.2px; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .sc-info .sc-type { font-size: 10px; color: var(--text3); margin-bottom: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .sc-foot { display: flex; justify-content: space-between; align-items: center; gap: 6px; padding-top: 8px; border-top: 1px solid var(--border); }
+        .sc-tag { font-size: 9.5px; color: var(--text3); font-weight: 500; display: inline-flex; align-items: center; gap: 4px; }
+        .sc-tag i { color: #8b5cf6; font-size: 9px; }
+        .sc-prev { font-size: 10px; color: #a78bfa; font-weight: 600; background: none; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; font-family: inherit; }
+        .sc-prev:hover { color: #c4b5fd; }
+
+        /* CATEGORY */
+        .cat-hero { padding: 28px 16px 20px; text-align: center; }
+        .cat-hero .ch-badge {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: rgba(139,92,246,0.1); border: 1px solid rgba(139,92,246,0.25);
+            color: #a78bfa; font-size: 9.5px; font-weight: 700;
+            padding: 5px 12px; border-radius: 100px; letter-spacing: 0.8px; text-transform: uppercase; margin-bottom: 14px;
+        }
+        .cat-hero .ch-title { font-size: 24px; font-weight: 800; letter-spacing: -1px; line-height: 1.15; margin-bottom: 8px; }
+        .cat-hero .ch-sub { font-size: 11.5px; color: var(--text3); line-height: 1.6; max-width: 420px; margin: 0 auto 18px; }
+        .cat-tabs { display: flex; gap: 6px; background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 5px; max-width: 380px; margin: 0 auto; }
+        .cat-tab {
+            flex: 1; padding: 10px 12px; border-radius: 10px; font-size: 11.5px; font-weight: 600;
+            color: var(--text2); cursor: pointer; transition: 0.2s; border: none; background: transparent;
+            display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-family: inherit;
+        }
+        .cat-tab:hover { color: var(--text); }
+        .cat-tab.active { background: var(--gradient); color: #fff; box-shadow: 0 8px 20px rgba(99,102,241,0.35); }
+        .cat-price-note { text-align: center; font-size: 10.5px; color: var(--text3); padding: 14px 16px 8px; }
+
+        .cat-groups { padding: 8px 16px 0; }
+        .cat-group { background: var(--card); border: 1px solid var(--border); border-radius: 18px; padding: 16px; margin-bottom: 12px; }
+        .cat-group-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; gap: 10px; flex-wrap: wrap; }
+        .cg-title { font-size: 12px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase; display: flex; align-items: center; gap: 8px; }
+        .cg-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+        .cg-dot.purple { background: #a78bfa; box-shadow: 0 0 10px #a78bfa; }
+        .cg-dot.green { background: #34d399; box-shadow: 0 0 10px #34d399; }
+        .cg-dot.orange { background: var(--orange2); box-shadow: 0 0 10px var(--orange2); }
+        .cg-dot.blue { background: #60a5fa; box-shadow: 0 0 10px #60a5fa; }
+        .cg-dot.red { background: #f87171; box-shadow: 0 0 10px #f87171; }
+        .cg-count { font-size: 9.5px; color: var(--text3); background: rgba(255,255,255,0.03); padding: 4px 10px; border-radius: 100px; border: 1px solid var(--border); font-weight: 600; }
+        .cg-grid { display: grid; grid-template-columns: 1fr; gap: 8px; }
+        @media (min-width: 640px) { .cg-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (min-width: 1024px) { .cg-grid { grid-template-columns: repeat(3, 1fr); } }
+        .cg-item { background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 12px; padding: 12px; transition: 0.2s; }
+        .cg-item:hover { background: rgba(255,255,255,0.04); border-color: rgba(139,92,246,0.3); }
+        .cg-name { font-size: 12px; font-weight: 700; letter-spacing: -0.1px; line-height: 1.3; margin-bottom: 5px; }
+        .cg-price { font-size: 11px; font-weight: 700; color: var(--orange2); letter-spacing: -0.1px; margin-bottom: 8px; }
+        .cg-desc { font-size: 10.5px; color: var(--text3); line-height: 1.5; }
+
+        /* PRICING NOTE */
+        .pricing-note {
+            margin: 12px 16px 20px;
+            background: linear-gradient(135deg, rgba(99,102,241,0.06), rgba(168,85,247,0.04));
+            border: 1px solid rgba(139,92,246,0.2); border-radius: 16px; padding: 16px;
+        }
+        .pn-title { font-size: 12px; font-weight: 800; letter-spacing: -0.2px; margin-bottom: 12px; display: flex; align-items: center; gap: 7px; }
+        .pn-title i { color: var(--orange2); }
+        .pn-grid { display: grid; gap: 10px; }
+        @media (min-width: 640px) { .pn-grid { grid-template-columns: repeat(2, 1fr); } }
+        .pn-item { display: flex; gap: 8px; align-items: flex-start; }
+        .pn-bullet { width: 5px; height: 5px; border-radius: 50%; background: #a78bfa; margin-top: 6px; flex-shrink: 0; box-shadow: 0 0 8px #a78bfa; }
+        .pn-text { font-size: 10.5px; color: var(--text2); line-height: 1.6; }
+        .pn-text strong { color: var(--text); font-weight: 700; }
+
+        /* ORDER */
+        .order-hero { padding: 28px 16px 18px; text-align: center; }
+        .order-hero .oh-badge {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.25);
+            color: #34d399; font-size: 9.5px; font-weight: 700;
+            padding: 5px 12px; border-radius: 100px; letter-spacing: 0.8px; text-transform: uppercase; margin-bottom: 12px;
+        }
+        .order-hero .oh-title { font-size: 22px; font-weight: 800; letter-spacing: -0.9px; line-height: 1.15; margin-bottom: 8px; }
+        .order-hero .oh-title .gr { background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .order-hero .oh-sub { font-size: 11px; color: var(--text3); line-height: 1.6; }
+        .order-steps { padding: 0 16px 20px; display: grid; gap: 12px; }
+        @media (min-width: 1024px) { .order-steps { grid-template-columns: repeat(3, 1fr); } }
+        .os-card { background: var(--card); border: 1px solid var(--border); border-radius: 18px; padding: 18px; position: relative; transition: 0.25s; }
+        .os-card:hover { border-color: var(--border-hi); transform: translateY(-2px); }
+        .os-num {
+            display: inline-flex; align-items: center; justify-content: center;
+            background: var(--gradient); color: #fff; font-size: 11px; font-weight: 700;
+            padding: 4px 12px; border-radius: 100px; margin-bottom: 12px; letter-spacing: 0.3px;
+            box-shadow: 0 6px 16px rgba(99,102,241,0.3);
+        }
+        .os-title { font-size: 14px; font-weight: 700; letter-spacing: -0.3px; margin-bottom: 8px; line-height: 1.3; }
+        .os-desc { font-size: 11px; color: var(--text2); line-height: 1.6; margin-bottom: 12px; }
+        .os-wa-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+        .os-wa-btn {
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            padding: 11px 14px; border-radius: 12px; font-size: 11.5px; font-weight: 700;
+            text-decoration: none; transition: 0.2s; letter-spacing: -0.1px; border: none; cursor: pointer; font-family: inherit;
+        }
+        .os-wa-btn.primary { background: linear-gradient(135deg, #10b981, #059669); color: #fff; box-shadow: 0 8px 20px rgba(16,185,129,0.35); }
+        .os-wa-btn.primary:hover { transform: translateY(-1px); }
+        .os-wa-btn.asisten { background: linear-gradient(135deg, #0ea5e9, #0284c7); color: #fff; box-shadow: 0 8px 20px rgba(14,165,233,0.35); }
+        .os-wa-btn.asisten:hover { transform: translateY(-1px); }
+        .os-hint { font-size: 10.5px; color: var(--text3); line-height: 1.5; margin-bottom: 8px; padding: 10px 12px; background: rgba(99,102,241,0.06); border: 1px solid rgba(99,102,241,0.15); border-radius: 10px; }
+        .os-hint strong { color: var(--text); font-weight: 700; }
+        .os-msg {
+            background: rgba(0,0,0,0.35); border: 1px solid var(--border); border-radius: 10px;
+            padding: 12px; font-family: 'Courier New', monospace; font-size: 10px;
+            color: var(--text2); white-space: pre-wrap; line-height: 1.7; margin-bottom: 10px;
+        }
+        .os-warning { background: rgba(249,115,22,0.06); border: 1px solid rgba(249,115,22,0.2); border-radius: 12px; padding: 12px; margin-bottom: 10px; }
+        .os-warning-title { font-size: 10.5px; font-weight: 800; color: var(--orange2); letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+        .os-warning-list { font-size: 10.5px; color: var(--text2); line-height: 1.65; list-style: none; }
+        .os-warning-list li { padding-left: 12px; position: relative; margin-bottom: 3px; }
+        .os-warning-list li::before { content: '·'; position: absolute; left: 0; top: -2px; color: var(--orange2); font-size: 16px; font-weight: 700; }
+        .os-help { background: linear-gradient(135deg, rgba(16,185,129,0.08), rgba(14,165,233,0.06)); border: 1px solid rgba(16,185,129,0.2); border-radius: 12px; padding: 14px; text-align: center; }
+        .os-help-title { font-size: 11px; font-weight: 800; margin-bottom: 5px; display: flex; align-items: center; justify-content: center; gap: 6px; }
+        .os-help-desc { font-size: 10px; color: var(--text3); line-height: 1.5; margin-bottom: 10px; }
+        .os-help-btn {
+            display: flex; align-items: center; justify-content: center; gap: 7px;
+            padding: 11px 16px; background: linear-gradient(135deg, #10b981, #059669);
+            color: #fff; border-radius: 10px; font-size: 11.5px; font-weight: 700;
+            text-decoration: none; box-shadow: 0 8px 20px rgba(16,185,129,0.35);
+            transition: 0.2s; letter-spacing: -0.1px; width: 100%;
+        }
+        .os-help-btn:hover { transform: translateY(-1px); }
+
+        /* FOOTER */
+        .footer { margin: 20px 16px 0; padding-top: 20px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 14px; }
+        @media (min-width: 768px) { .footer { flex-direction: row; align-items: center; justify-content: space-between; } }
+        .ft-brand { display: flex; align-items: center; gap: 10px; }
+        .ft-icon { width: 32px; height: 32px; border-radius: 9px; background: var(--gradient); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; color: #fff; }
+        .ft-text .ft-t { font-size: 12px; font-weight: 700; letter-spacing: -0.2px; }
+        .ft-text .ft-s { font-size: 10px; color: var(--text3); }
+        .ft-links { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; }
+        .ft-links a { color: var(--text3); text-decoration: none; font-size: 10.5px; transition: 0.2s; }
+        .ft-links a:hover { color: var(--text); }
+        .ft-status { display: flex; align-items: center; gap: 6px; font-size: 10.5px; color: var(--text3); justify-content: center; }
+        .ft-dot { width: 5px; height: 5px; border-radius: 50%; background: #10b981; box-shadow: 0 0 8px #10b981; animation: pulse 2s infinite; }
+        @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+        /* MODAL & PIN */
+        .modal-ov {
+            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(12px); z-index: 999; padding: 20px; overflow-y: auto;
+            align-items: flex-start; justify-content: center;
+        }
+        .modal-ov.open { display: flex; align-items: center; }
+        .modal-bx {
+            background: var(--bg2); border: 1px solid var(--border); max-width: 640px; width: 100%;
+            border-radius: 20px; padding: 24px; max-height: 90vh; overflow-y: auto;
+            animation: fade 0.25s ease; box-shadow: 0 30px 80px rgba(0,0,0,0.7);
+        }
+        .modal-bx .modal-title { font-size: 16px; font-weight: 800; letter-spacing: -0.4px; margin-bottom: 16px; padding-right: 40px; }
+        .modal-close {
+            float: right; width: 32px; height: 32px; border-radius: 50%;
+            background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+            color: var(--text2); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px;
+        }
+        .modal-close:hover { background: rgba(255,255,255,0.08); color: var(--text); }
+        .modal-preview .modal-bx { max-width: 92vw; padding: 16px; }
+        .pv-iframe { width: 100%; height: 72vh; border: 1px solid var(--border); border-radius: 12px; background: #000; }
+        .pv-placeholder {
+            display: flex; align-items: center; justify-content: center; height: 60vh;
+            background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 12px;
+            color: var(--text3); flex-direction: column; gap: 12px; padding: 20px; text-align: center;
+        }
+        .pv-placeholder i { font-size: 40px; opacity: 0.4; }
+        .pin-ov {
+            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9);
+            backdrop-filter: blur(20px); z-index: 9999; padding: 24px;
+            align-items: center; justify-content: center;
+        }
+        .pin-ov.open { display: flex; }
+        .pin-bx {
+            background: var(--bg2); border: 1px solid var(--border); border-radius: 20px;
+            padding: 30px 24px; max-width: 380px; width: 100%; text-align: center;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.7);
+        }
+        .pin-icon-box {
+            width: 56px; height: 56px; border-radius: 16px; background: var(--gradient);
+            display: flex; align-items: center; justify-content: center; font-size: 22px; color: #fff;
+            margin: 0 auto 18px; box-shadow: 0 12px 28px rgba(99,102,241,0.45);
+        }
+        .pin-bx h3 { font-size: 18px; font-weight: 800; letter-spacing: -0.4px; margin-bottom: 6px; }
+        .pin-bx p { font-size: 11.5px; color: var(--text3); margin-bottom: 20px; }
+        .pin-bx input {
+            width: 100%; padding: 15px; border: 1px solid var(--border); border-radius: 12px;
+            background: rgba(0,0,0,0.4); color: var(--text); font-size: 20px; text-align: center;
+            letter-spacing: 8px; font-weight: 700; font-family: inherit; outline: none;
+        }
+        .pin-bx input:focus { border-color: #8b5cf6; }
+        .pin-bx input::placeholder { color: var(--text3); letter-spacing: 4px; }
+        .pin-err { color: #f87171; font-size: 11.5px; margin-top: 10px; display: none; }
+
+        /* FORM & BUTTONS */
+        .fg { margin-bottom: 14px; }
+        .fg label { display: block; font-size: 11px; font-weight: 600; color: var(--text2); margin-bottom: 7px; letter-spacing: 0.2px; }
+        .fg input, .fg textarea, .fg select {
+            width: 100%; padding: 12px 14px; border: 1px solid var(--border); border-radius: 10px;
+            background: rgba(0,0,0,0.3); color: var(--text); font-size: 12.5px; font-family: inherit; transition: 0.2s;
+        }
+        .fg input:focus, .fg textarea:focus, .fg select:focus { outline: none; border-color: #8b5cf6; box-shadow: 0 0 0 3px rgba(139,92,246,0.15); }
+        .fg textarea { min-height: 80px; resize: vertical; }
+        .btn {
+            display: inline-flex; align-items: center; gap: 6px; padding: 10px 16px;
+            border-radius: 10px; border: 1px solid var(--border); background: rgba(255,255,255,0.04);
+            color: var(--text); font-size: 12px; font-weight: 600; cursor: pointer; transition: 0.2s;
+            text-decoration: none; font-family: inherit;
+        }
+        .btn:hover { background: rgba(255,255,255,0.08); }
+        .btn-primary { background: var(--gradient); color: #fff; border: none; box-shadow: 0 8px 20px rgba(99,102,241,0.35); }
+        .btn-primary:hover { transform: translateY(-1px); }
+        .btn-danger { background: rgba(239,68,68,0.15); color: #f87171; border-color: rgba(239,68,68,0.3); }
+        .btn-sm { padding: 6px 11px; font-size: 11px; border-radius: 8px; }
+
+        /* ITEM CARD */
+        .item-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 14px; margin-bottom: 10px; }
+        .item-card .item-title { font-weight: 700; font-size: 13.5px; letter-spacing: -0.2px; }
+        .item-card .item-desc { font-size: 12px; color: var(--text2); margin-top: 4px; line-height: 1.5; }
+        .item-card .item-meta { font-size: 10.5px; color: var(--text3); margin-top: 8px; display: flex; gap: 12px; flex-wrap: wrap; }
+        .item-card img.item-img { width: 100%; max-height: 200px; object-fit: cover; border-radius: 10px; margin-bottom: 10px; border: 1px solid var(--border); }
+        .badge { display: inline-block; padding: 2px 9px; border-radius: 100px; font-size: 9.5px; font-weight: 700; letter-spacing: 0.3px; }
+        .badge-success { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.25); }
+        .badge-warning { background: rgba(249,115,22,0.15); color: var(--orange2); border: 1px solid rgba(249,115,22,0.25); }
+        .badge-info { background: rgba(99,102,241,0.15); color: #a5b4fc; border: 1px solid rgba(99,102,241,0.25); }
+
+        /* CHART */
+        .chart-wrap { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 16px; margin-bottom: 12px; }
+        .chart-wrap canvas { max-height: 200px; width: 100% !important; }
+
+        /* ADMIN */
+        .admin-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 18px; }
+        @media (min-width: 640px) { .admin-stats { grid-template-columns: repeat(4, 1fr); } }
+        .stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 14px; }
+        .stat-icon { width: 32px; height: 32px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 13px; margin-bottom: 10px; }
+        .stat-icon.purple { background: rgba(139,92,246,0.15); color: #a78bfa; }
+        .stat-icon.orange { background: rgba(249,115,22,0.15); color: var(--orange2); }
+        .stat-icon.blue { background: rgba(59,130,246,0.15); color: #60a5fa; }
+        .stat-icon.green { background: rgba(16,185,129,0.15); color: #34d399; }
+        .stat-value { font-size: 22px; font-weight: 800; letter-spacing: -0.8px; line-height: 1; }
+        .stat-label { font-size: 9.5px; color: var(--text3); font-weight: 600; margin-top: 5px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .admin-tabs { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 12px; margin-bottom: 14px; border-bottom: 1px solid var(--border); scrollbar-width: none; }
+        .admin-tabs::-webkit-scrollbar { display: none; }
+        .nav-tab {
+            flex-shrink: 0; padding: 8px 14px; border-radius: 10px; background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border); font-size: 11px; font-weight: 600; color: var(--text2);
+            cursor: pointer; white-space: nowrap; display: flex; align-items: center; gap: 6px; font-family: inherit;
+        }
+        .nav-tab:hover { color: var(--text); }
+        .nav-tab.active { background: var(--gradient); color: #fff; border-color: transparent; box-shadow: 0 6px 16px rgba(99,102,241,0.3); }
+        .admin-sec { display: none; }
+        .admin-sec.open { display: block; animation: fade 0.25s ease; }
+        .sec-head-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; gap: 8px; flex-wrap: wrap; }
+        .sec-title-admin { font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+        .count-pill { background: rgba(139,92,246,0.15); color: #a78bfa; font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 100px; border: 1px solid rgba(139,92,246,0.25); }
+        .admin-add-btn {
+            background: var(--gradient); color: #fff; border: none; padding: 8px 14px; border-radius: 10px;
+            font-size: 11.5px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+            box-shadow: 0 6px 16px rgba(99,102,241,0.3); font-family: inherit;
+        }
+        .admin-add-btn:hover { transform: translateY(-1px); }
+        .admin-li {
+            background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+            padding: 11px 13px; margin-bottom: 7px; display: flex; align-items: center; gap: 11px;
+        }
+        .admin-li:hover { border-color: var(--border-hi); }
+        .li-thumb { width: 42px; height: 42px; border-radius: 10px; object-fit: cover; background: rgba(0,0,0,0.3); flex-shrink: 0; border: 1px solid var(--border); }
+        .li-thumb-ph {
+            width: 42px; height: 42px; border-radius: 10px; background: rgba(139,92,246,0.12);
+            border: 1px solid rgba(139,92,246,0.25); display: flex; align-items: center; justify-content: center;
+            color: #a78bfa; font-size: 13px; flex-shrink: 0;
+        }
+        .li-body { flex: 1; min-width: 0; }
+        .li-name { font-weight: 600; font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .li-meta { font-size: 10.5px; color: var(--text3); margin-top: 2px; display: flex; gap: 8px; flex-wrap: wrap; }
+        .li-actions { display: flex; gap: 5px; flex-shrink: 0; }
+        .li-btn {
+            width: 30px; height: 30px; border-radius: 8px; border: 1px solid var(--border);
+            background: rgba(255,255,255,0.03); color: var(--text2); cursor: pointer;
+            display: flex; align-items: center; justify-content: center; font-size: 10.5px; transition: 0.2s; font-family: inherit;
+        }
+        .li-btn.edit:hover { background: rgba(139,92,246,0.15); border-color: rgba(139,92,246,0.3); color: #a78bfa; }
+        .li-btn.del:hover { background: rgba(239,68,68,0.15); border-color: rgba(239,68,68,0.3); color: #f87171; }
+        .admin-form-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 18px; }
+        .form-title { font-size: 10.5px; font-weight: 800; color: #a78bfa; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+        .form-title::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, var(--border) 0%, transparent 100%); }
+        .admin-profile-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 20px; text-align: center; }
+        .admin-profile-photo { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid rgba(139,92,246,0.3); margin: 0 auto 12px; display: block; }
+        .admin-profile-ph {
+            width: 80px; height: 80px; border-radius: 50%; background: var(--gradient);
+            display: flex; align-items: center; justify-content: center; color: #fff; font-size: 28px; font-weight: 800;
+            margin: 0 auto 12px; box-shadow: 0 10px 28px rgba(99,102,241,0.4);
+        }
+
+        /* TOAST */
+        .toast {
+            position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+            background: var(--bg2); border: 1px solid var(--border); color: var(--text);
+            padding: 11px 20px; border-radius: 12px; font-size: 12px; font-weight: 500;
+            z-index: 99999; display: none; box-shadow: 0 20px 60px rgba(0,0,0,0.6); max-width: 90%;
+        }
+        .toast.show { display: block; animation: fade 0.3s ease; }
+        .toast.success { border-color: rgba(16,185,129,0.4); background: linear-gradient(135deg, rgba(16,185,129,0.15), rgba(16,185,129,0.05)); }
+        .toast.error { border-color: rgba(239,68,68,0.4); background: linear-gradient(135deg, rgba(239,68,68,0.15), rgba(239,68,68,0.05)); }
+
+        /* DYNAMIC PAGE */
+        .page-title {
+            font-size: 20px; font-weight: 800; letter-spacing: -0.6px; margin: 8px 16px 20px;
+            display: flex; align-items: center; gap: 12px;
+        }
+        .back-btn {
+            width: 38px; height: 38px; border-radius: 11px; background: rgba(255,255,255,0.04);
+            border: 1px solid var(--border); display: flex; align-items: center; justify-content: center;
+            color: var(--text); cursor: pointer; font-size: 13px; transition: 0.2s;
+        }
+        .back-btn:hover { background: rgba(255,255,255,0.08); }
+        #dynamicContent { padding: 0 16px; }
+
+        /* MOBILE MENU */
+        .mobile-menu {
+            display: none; position: fixed; inset: 0; background: rgba(6,8,15,0.96);
+            backdrop-filter: blur(20px); z-index: 998; padding: 24px 16px; flex-direction: column; gap: 8px;
+        }
+        .mobile-menu.open { display: flex; }
+        .mm-close {
+            align-self: flex-end; width: 38px; height: 38px; border-radius: 11px;
+            background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: center;
+            color: var(--text); cursor: pointer; margin-bottom: 16px; font-size: 14px;
+        }
+        .mobile-menu a {
+            color: var(--text); text-decoration: none; font-size: 14px; font-weight: 600;
+            padding: 14px 18px; border-radius: 12px; background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border); display: flex; justify-content: space-between;
+            align-items: center; letter-spacing: -0.2px;
+        }
+        .mobile-menu a:hover { background: rgba(255,255,255,0.06); }
+        .mobile-menu a i { color: #a78bfa; font-size: 12px; }
+    </style>
+</head>
+<body>
+
+    <div id="toast" class="toast"></div>
+
+    <div id="mobileMenu" class="mobile-menu">
+        <div class="mm-close" onclick="toggleMobileMenu()"><i class="fas fa-times"></i></div>
+        <a href="#" onclick="closeMobile();navigateTo('blog')">Catatan Pengembangan <i class="fas fa-chevron-right"></i></a>
+        <a href="#" onclick="closeMobile();navigateTo('websites')">Website Siap Jual <i class="fas fa-chevron-right"></i></a>
+        <a href="#" onclick="closeMobile();navigateTo('mywebsites')">Website Saya <i class="fas fa-chevron-right"></i></a>
+        <a href="#" onclick="closeMobile();navigateTo('grafik')">Grafik & Data <i class="fas fa-chevron-right"></i></a>
+        <a href="#" onclick="closeMobile();navigateTo('karya')">Karya & Proyek <i class="fas fa-chevron-right"></i></a>
+        <a href="#" onclick="closeMobile();navigateTo('kontak')">Kontak <i class="fas fa-chevron-right"></i></a>
+        <a href="#" onclick="closeMobile();openAdmin()">Admin Panel <i class="fas fa-shield-alt"></i></a>
+    </div>
+
+    <div id="pinOverlay" class="pin-ov">
+        <div class="pin-bx">
+            <div class="pin-icon-box"><i class="fas fa-shield-alt"></i></div>
+            <h3>Admin Access</h3>
+            <p>Masukkan PIN untuk melanjutkan</p>
+            <input type="password" id="pinInput" maxlength="6" placeholder="••••••" />
+            <div id="pinError" class="pin-err">PIN salah, coba lagi.</div>
+            <div style="margin-top:18px;display:flex;gap:8px;justify-content:center;">
+                <button class="btn" onclick="closePin()">Batal</button>
+                <button class="btn btn-primary" onclick="verifyPin()">Masuk</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalOverlay" class="modal-ov">
+        <div class="modal-bx" id="modalBox">
+            <span class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></span>
+            <div id="modalContent"></div>
+        </div>
+    </div>
+
+    <div id="previewModalOverlay" class="modal-ov modal-preview">
+        <div class="modal-bx">
+            <span class="modal-close" onclick="closePreviewModal()"><i class="fas fa-times"></i></span>
+            <div id="previewModalContent"></div>
+        </div>
+    </div>
+
+    <div class="app">
+        <div id="page-beranda" class="page active">
+
+            <!-- TOPBAR -->
+            <div class="topbar">
+                <div class="topbar-brand" onclick="openAdmin()">Waa-O51W</div>
+                <div class="topbar-icons">
+                    <div class="tb-icon" onclick="openAdmin()"><i class="fas fa-user-shield"></i></div>
+                    <div class="tb-icon" onclick="toggleMobileMenu()"><i class="fas fa-bars"></i></div>
+                </div>
+            </div>
+
+            <!-- ============ KARTU PROFIL UTAMA (FOTO BESAR + NAMA DI BAWAH) ============ -->
+            <div class="profile-main-card">
+                <!-- Area Foto Profil Besar -->
+                <div class="profile-photo-area" onclick="uploadProfilePhoto()">
+                    <img id="profilePhotoImg" src="" style="display:none;" />
+                    <div class="profile-photo-placeholder" id="profilePhotoPlaceholder">
+                        <i class="fas fa-image"></i>
+                        <div class="pp-label">Foto Profil</div>
+                    </div>
+                    <div class="profile-photo-overlay">
+                        <i class="fas fa-camera"></i>
+                        <span>Klik untuk Ubah Foto</span>
+                    </div>
+                </div>
+
+                <!-- Info Nama & Bio -->
+                <div class="profile-main-info">
+                    <div class="profile-main-name">
+                        <span id="heroNameDisplay">Waa-O51W</span>
+                        <i class="fas fa-check-circle verified-badge"></i>
+                    </div>
+                    <div class="profile-main-bio">
+                        <span class="bio-icon">📝</span>
+                        <span id="heroBioDisplay">Bisnis Digital, Solusi Web & Portofolio Kreatif</span>
+                    </div>
+                    <div class="profile-main-tagline">
+                        <i class="fas fa-lock"></i>
+                        <span>Klik nama untuk buka Panel Admin</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SOCIAL GRID -->
+            <div class="social-grid" id="socialGrid">
+                <a href="#" class="social-tile" target="_blank">
+                    <div class="st-icon ig"><i class="fab fa-instagram"></i></div>
+                    <div class="st-label">Instagram<br/>@waa.o51w</div>
+                </a>
+                <a href="#" class="social-tile" target="_blank">
+                    <div class="st-icon yt"><i class="fab fa-youtube"></i></div>
+                    <div class="st-label">YouTube<br/>Watch Channel</div>
+                </a>
+                <a href="#" class="social-tile" target="_blank">
+                    <div class="st-icon tt"><i class="fab fa-tiktok"></i></div>
+                    <div class="st-label">TikTok<br/>@waa.o51w</div>
+                </a>
+                <a href="#" class="social-tile" target="_blank">
+                    <div class="st-icon em"><i class="fas fa-envelope"></i></div>
+                    <div class="st-label">Email<br/>Request Proposal</div>
+                </a>
+            </div>
+
+            <!-- AD INSPIRATION -->
+            <div class="ad-card">
+                <div class="ad-top">
+                    <div class="ad-trend"><i class="fas fa-fire"></i> Trending</div>
+                    <div class="ad-arrow"><i class="fas fa-arrow-right"></i></div>
+                </div>
+                <div class="ad-title">Latest Ad Inspiration</div>
+                <div class="ad-desc">Fresh ads, daily. Terangkum tren periklanan bisnis digital Anda dengan arsitektur visual terkini.</div>
+                <div class="ad-footer">
+                    <div class="ad-counter"><i class="fas fa-clock"></i> 48+ Konten Inspirasi</div>
+                    <a href="#" class="ad-btn" onclick="navigateTo('blog')">Eksplorasi Sekarang <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </div>
+
+            <!-- MENU GRID -->
+            <div class="menu-grid">
+                <a class="menu-card" href="#" onclick="navigateTo('websites')">
+                    <div class="mc-head">
+                        <div class="mc-icon purple"><i class="fas fa-shopping-bag"></i></div>
+                        <span class="mc-badge live">Live</span>
+                    </div>
+                    <div class="mc-title">Website Siap Jual</div>
+                    <div class="mc-sub">Website yang telah selesai dibuat</div>
+                    <div class="mc-footer">
+                        <span class="mc-foot-label" id="cntSiapJual">0 Produk</span>
+                        <span class="mc-foot-arrow">Lihat →</span>
+                    </div>
+                </a>
+                <a class="menu-card" href="#" onclick="navigateTo('mywebsites')">
+                    <div class="mc-head">
+                        <div class="mc-icon green"><i class="fas fa-globe"></i></div>
+                        <span class="mc-badge percent" id="cntWebsitePill">0 Website</span>
+                    </div>
+                    <div class="mc-title">Daftar Website Saya</div>
+                    <div class="mc-sub">Lihat website pribadi saya</div>
+                    <div class="mc-footer">
+                        <span class="mc-foot-label">Portofolio</span>
+                        <span class="mc-foot-arrow">Buka →</span>
+                    </div>
+                </a>
+                <a class="menu-card" href="#" onclick="navigateTo('grafik')">
+                    <div class="mc-head">
+                        <div class="mc-icon blue"><i class="fas fa-chart-line"></i></div>
+                        <span class="mc-badge percent">+24%</span>
+                    </div>
+                    <div class="mc-title">Grafik & Data</div>
+                    <div class="mc-sub">Lihat grafik bisnis & data teknologi</div>
+                    <div class="mc-footer">
+                        <span class="mc-foot-label">Analytics</span>
+                        <span class="mc-foot-arrow">Detail →</span>
+                    </div>
+                </a>
+                <a class="menu-card" href="#" onclick="navigateTo('karya')">
+                    <div class="mc-head">
+                        <div class="mc-icon orange"><i class="fas fa-paint-brush"></i></div>
+                        <span class="mc-badge pro">Pro</span>
+                    </div>
+                    <div class="mc-title">Karya & Proyek</div>
+                    <div class="mc-sub">Karya & proyek pengerjaan</div>
+                    <div class="mc-footer">
+                        <span class="mc-foot-label" id="cntKarya">0 Karya</span>
+                        <span class="mc-foot-arrow">Lihat →</span>
+                    </div>
+                </a>
+            </div>
+
+            <!-- CONTACT CTA -->
+            <div class="contact-cta">
+                <div class="cta-left">
+                    <div class="cta-icon"><i class="fas fa-handshake"></i></div>
+                    <div class="cta-text">
+                        <div class="cta-title">Kontak & Kerjasama <span class="cta-badge">Responsif</span></div>
+                        <div class="cta-desc">Order app/web atau diskusi kolaborasi bisnis Anda sekarang.</div>
+                    </div>
+                </div>
+                <div class="cta-actions">
+                    <a href="#" id="ctaWa" target="_blank" class="cta-btn wa"><i class="fab fa-whatsapp"></i> WhatsApp Chat</a>
+                    <a href="#" onclick="navigateTo('kontak')" class="cta-btn form"><i class="fas fa-file-lines"></i> Formulir Pesan</a>
+                </div>
+            </div>
+
+            <!-- SHOWCASE -->
+            <div class="sec-head">
+                <div class="sec-head-left">
+                    <div class="sh-badge"><i class="fas fa-star"></i> Showcase Terbaru</div>
+                    <div class="sh-title">Website Siap Jual</div>
+                    <div class="sh-desc">Pratinjau website siap jual yang telah selesai dikerjakan</div>
+                </div>
+                <div class="sec-head-right">
+                    <div class="sh-auto"><span class="dot"></span> Auto-scroll aktif</div>
+                </div>
+            </div>
+            <div class="showcase" id="showcase"></div>
+
+            <!-- CATEGORY -->
+            <div class="cat-hero">
+                <div class="ch-badge"><i class="fas fa-layer-group"></i> Layanan & Spesifikasi</div>
+                <div class="ch-title">Penjelasan & Kategori<br/>Yang Diterima</div>
+                <div class="ch-sub">Transparansi spesifikasi teknis, fungsi lengkap, dan estimasi harga pasaran Indonesia 2026–2027.</div>
+                <div class="cat-tabs">
+                    <button class="cat-tab active" data-cat="website" onclick="switchCat('website')">
+                        <i class="fas fa-globe"></i> Kategori Website
+                    </button>
+                    <button class="cat-tab" data-cat="aplikasi" onclick="switchCat('aplikasi')">
+                        <i class="fas fa-mobile-alt"></i> Kategori Aplikasi
+                    </button>
+                </div>
+            </div>
+            <div class="cat-price-note"><i class="fas fa-circle-info"></i> Kisaran harga dalam Rupiah, pasaran Indonesia tahun 2026–2027</div>
+
+            <div class="cat-groups" id="catGroups"></div>
+
+            <!-- PRICING NOTE -->
+            <div class="pricing-note">
+                <div class="pn-title"><i class="fas fa-info-circle"></i> Catatan Keterangan Harga</div>
+                <div class="pn-grid">
+                    <div class="pn-item"><div class="pn-bullet"></div><div class="pn-text"><strong>Mulai:</strong> Fitur dasar, desain sederhana, data terbatas.</div></div>
+                    <div class="pn-item"><div class="pn-bullet"></div><div class="pn-text"><strong>Sampai:</strong> Lengkap, banyak fitur, desain indah, keamanan tinggi.</div></div>
+                    <div class="pn-item"><div class="pn-bullet"></div><div class="pn-text"><strong>&gt; Rp 15 juta:</strong> Butuh pengembang khusus, uji keamanan, izin hukum.</div></div>
+                    <div class="pn-item"><div class="pn-bullet"></div><div class="pn-text"><strong>Keuntungan:</strong> Harga sudah termasuk Domain & Hosting + pengecekan rutin.</div></div>
+                    <div class="pn-item"><div class="pn-bullet"></div><div class="pn-text"><strong>Waktu pengerjaan:</strong> 7 Hari – 2 Bulan atau lebih.</div></div>
+                    <div class="pn-item"><div class="pn-bullet"></div><div class="pn-text"><strong>Garansi 1 Bulan:</strong> Bebas kesalahan, fitur/menu kurang, & kerugian.</div></div>
+                </div>
+            </div>
+
+            <!-- ORDER -->
+            <div class="order-hero" id="orderHero">
+                <div class="oh-badge"><i class="fas fa-compass"></i> Panduan Pemesanan</div>
+                <div class="oh-title">Cara Memesan Jasa &<br/><span class="gr">Membeli Website</span></div>
+                <div class="oh-sub">Alur mudah, aman, dan langsung terhubung dengan pemilik sistem.</div>
+            </div>
+
+            <div class="order-steps">
+                <div class="os-card">
+                    <div class="os-num">LANGKAH 01</div>
+                    <div class="os-title">Pilih Jenis Layanan</div>
+                    <div class="os-desc">Lihat daftar kategori di atas, tentukan jenis website atau aplikasi yang kamu inginkan, lalu catat nomor & nama kategori serta fitur tambahan yang dibutuhkan.</div>
+                    <div class="os-hint"><strong>💡 Tips:</strong> Pilih yang paling mendekati operasional tim Anda untuk mempercepat proses.</div>
+                </div>
+
+                <div class="os-card">
+                    <div class="os-num">LANGKAH 02</div>
+                    <div class="os-title">Hubungi Langsung Melalui WhatsApp Pemilik</div>
+                    <div class="os-wa-list">
+                        <a href="#" id="osWaPemilik" target="_blank" class="os-wa-btn primary"><i class="fab fa-whatsapp"></i> Hubungi WhatsApp Pemilik</a>
+                        <a href="#" id="osWaAsisten" target="_blank" class="os-wa-btn asisten"><i class="fas fa-robot"></i> Hubungi WhatsApp Asisten Virtual</a>
+                    </div>
+                    <div class="os-hint"><strong>💡 Cara Kerjanya:</strong> Saat kamu menekan tombol di atas, otomatis beralih ke WhatsApp dengan pesan sudah terisi lengkap seperti teks di bawah.</div>
+                    <div class="os-msg">Halo, saya mau pesan jasa pembuatan website/aplikasi.
+
+📋 Jenis Layanan: [Isi nama kategori]
+✅ Fitur Tambahan: [Sebutkan jika ada keinginan khusus]
+📌 Keterangan Lain: [Isi kebutuhan khusus, nama proyek, atau hal yang diinginkan]
+
+Mohon info harga, waktu pengerjaan, dan penjelasan selanjutnya. Terima kasih.</div>
+                </div>
+
+                <div class="os-card">
+                    <div class="os-num">LANGKAH 03</div>
+                    <div class="os-title">Diskusi & Kesepakatan</div>
+                    <div class="os-desc">Pemilik akan membalas berisi rincian harga, waktu pengerjaan, penjelasan fitur, serta syarat & ketentuan. Setelah cocok, kamu bisa menyepakati cara pembayaran dan mulai pengerjaan.</div>
+                    <div class="os-warning">
+                        <div class="os-warning-title"><i class="fas fa-triangle-exclamation"></i> Catatan Penting</div>
+                        <ul class="os-warning-list">
+                            <li>Semua komunikasi, kesepakatan, dan pembayaran hanya melalui WhatsApp agar aman & tercatat.</li>
+                            <li>Tidak ada layanan pesan lewat media sosial lain atau tautan tidak resmi.</li>
+                            <li>Setelah selesai, kamu mendapat akses penuh ke website/aplikasi + panduan pengelolaan.</li>
+                        </ul>
+                    </div>
+                    <div class="os-help">
+                        <div class="os-help-title"><i class="fas fa-headset"></i> Butuh Bantuan Langsung?</div>
+                        <div class="os-help-desc">Klik ikon WhatsApp di atas — pesan langsung terisi, tinggal kirim!</div>
+                        <a href="#" id="osHelpBtn" target="_blank" class="os-help-btn"><i class="fab fa-whatsapp"></i> Chat WhatsApp Sekarang</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FOOTER -->
+            <div class="footer">
+                <div class="ft-brand">
+                    <div class="ft-icon">W</div>
+                    <div class="ft-text">
+                        <div class="ft-t">Waa-O51W</div>
+                        <div class="ft-s">© 2025 Waa-O51W. All rights reserved.</div>
+                    </div>
+                </div>
+                <div class="ft-links">
+                    <a href="#">Privacy Policy</a>
+                    <a href="#">Terms of Service</a>
+                    <a href="#">Security</a>
+                    <a href="#" onclick="openAdmin()">Admin Access</a>
+                </div>
+                <div class="ft-status"><span class="ft-dot"></span> System AI Operational</div>
+            </div>
+        </div>
+
+        <div id="page-dinamis" class="page">
+            <div class="page-title">
+                <span class="back-btn" onclick="goHome()"><i class="fas fa-arrow-left"></i></span>
+                <span id="dynamicPageTitle">Halaman</span>
+            </div>
+            <div id="dynamicContent"></div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        // FIREBASE INIT
+        // ============================================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyAJFzhiJg0Y1DfH_gRo98yqTtEfYaqwcUE",
+            authDomain: "bisnis-portofolioku.firebaseapp.com",
+            projectId: "bisnis-portofolioku",
+            storageBucket: "bisnis-portofolioku.firebasestorage.app",
+            messagingSenderId: "1029563186618",
+            appId: "1:1029563186618:web:c02bb27b795af4cb31f183"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const docRef = db.collection('apps').doc('waa051w_data');
+
+        let data = null;
+        let isLoaded = false;
+        let currentCat = 'website';
+
+        function getDefaultData() {
+            return {
+                profile: { name: 'Waa-O51W', bio: 'Bisnis Digital, Solusi Web & Portofolio Kreatif', photo: '' },
+                social: {
+                    instagram: 'https://instagram.com/waa.o51w',
+                    youtube: 'https://youtube.com',
+                    tiktok: 'https://tiktok.com/@waa.o51w',
+                    email: 'mailto:hello@waa051w.com',
+                    whatsapp: '6283148864663',
+                    whatsapp_asisten: '6285761744850'
+                },
+                websites: [
+                    { id: 'w1', name: 'TokoKu', domain: 'tokoku.com', fungsi: 'E-commerce', status: 'Aktif', image: '' },
+                    { id: 'w2', name: 'Portofolio Saya', domain: 'porto.dev', fungsi: 'Portofolio', status: 'Aktif', image: '' }
+                ],
+                siapjual: [
+                    { id: 'sj1', name: 'AuraStore', price: 'Rp 150.000', fitur: 'E-Commerce · Landing Page · Order', website_url: 'https://example.com', image: '' },
+                    { id: 'sj2', name: 'ApexCorp', price: 'Rp 350.000', fitur: 'Company Profile · Modern · Clean', website_url: 'https://example.com', image: '' },
+                    { id: 'sj3', name: 'FolioDark', price: 'Rp 200.000', fitur: 'Portfolio · Freelance · Tech', website_url: 'https://example.com', image: '' }
+                ],
+                karya: [{ id: 'k1', name: 'Aplikasi Cuaca', category: 'Mobile', year: '2025', image: '', desc: 'Aplikasi cuaca realtime' }],
+                skills: [{ id: 'sk1', name: 'JavaScript', level: 'Ahli' }, { id: 'sk2', name: 'React', level: 'Menengah' }],
+                blog: [{ id: 'b1', title: 'Belajar Tailwind CSS', content: 'Panduan lengkap...', date: '2026-01-10' }],
+                testimoni: [{ id: 't1', name: 'Andi', rating: 5, text: 'Sangat profesional!' }],
+                layanan: [{ id: 'l1', name: 'Web Development', price: 'Mulai Rp 3 Juta', desc: 'Fullstack web app' }],
+                unduhan: [{ id: 'u1', name: 'Portofolio Template', file: 'template.zip' }],
+                sliderImages: []
+            };
+        }
+
+        async function loadData() {
+            try {
+                const snap = await docRef.get();
+                if (snap.exists) {
+                    data = snap.data();
+                    const def = getDefaultData();
+                    for (let k in def) {
+                        if (!(k in data)) data[k] = def[k];
+                        if (k === 'profile') for (let p in def.profile) if (!(p in data.profile)) data.profile[p] = def.profile[p];
+                        if (k === 'social') for (let s in def.social) if (!(s in data.social)) data.social[s] = def.social[s];
+                    }
+                    isLoaded = true; renderAll();
+                } else {
+                    data = getDefaultData();
+                    await docRef.set(data);
+                    isLoaded = true; renderAll();
+                }
+            } catch (e) {
+                console.error(e);
+                data = getDefaultData();
+                isLoaded = true; renderAll();
+            }
+        }
+
+        async function save() {
+            if (!data) return;
+            try { await docRef.set(data); } catch (e) { console.error(e); toast('Gagal menyimpan', 'error'); }
+        }
+
+        function startListener() {
+            docRef.onSnapshot(snap => {
+                if (snap.exists) {
+                    const nd = snap.data();
+                    if (data) for (let k in nd) data[k] = nd[k];
+                    else data = nd;
+                    isLoaded = true;
+                    renderAll();
+                }
+            });
+        }
+
+        function renderAll() {
+            if (!isLoaded || !data) return;
+            renderProfile();
+            renderSocial();
+            renderMenuCounts();
+            renderShowcase();
+            renderCatGroups(currentCat);
+            updateWaLinks();
+            renderDynamicContent();
+        }
+
+        function renderProfile() {
+            const p = data.profile;
+            const img = document.getElementById('profilePhotoImg');
+            const ph = document.getElementById('profilePhotoPlaceholder');
+            if (p.photo && p.photo.length > 50) {
+                img.src = p.photo;
+                img.style.display = 'block';
+                ph.style.display = 'none';
+            } else {
+                img.style.display = 'none';
+                ph.style.display = 'flex';
+            }
+            document.getElementById('heroNameDisplay').textContent = p.name || 'Waa-O51W';
+            document.getElementById('heroBioDisplay').textContent = p.bio || 'Bisnis Digital, Solusi Web & Portofolio Kreatif';
+        }
+
+        function renderSocial() {
+            const s = data.social;
+            const links = document.getElementById('socialGrid').querySelectorAll('a');
+            if (links.length >= 4) {
+                links[0].href = s.instagram || '#';
+                links[1].href = s.youtube || '#';
+                links[2].href = s.tiktok || '#';
+                links[3].href = s.email || '#';
+            }
+        }
+
+        function renderMenuCounts() {
+            document.getElementById('cntSiapJual').textContent = (data.siapjual?.length || 0) + ' Produk';
+            document.getElementById('cntWebsitePill').textContent = (data.websites?.length || 0) + ' Website';
+            document.getElementById('cntKarya').textContent = (data.karya?.length || 0) + ' Karya';
+        }
+
+        function renderShowcase() {
+            const c = document.getElementById('showcase');
+            const items = (data.siapjual || []).slice(0, 6);
+            if (!items.length) { c.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text3);font-size:12px;">Belum ada website showcase.</div>'; return; }
+            let h = '';
+            items.forEach(p => {
+                h += `
+                <div class="showcase-card">
+                    <div class="sc-thumb">
+                        ${p.image ? `<img src="${p.image}" />` : '<div style="width:100%;height:100%;background:linear-gradient(135deg, rgba(99,102,241,0.2), rgba(168,85,247,0.15));"></div>'}
+                        <div class="sc-dots"><span></span><span></span><span></span></div>
+                        <div class="sc-price">${p.price || '-'}</div>
+                    </div>
+                    <div class="sc-info">
+                        <div class="sc-name">${p.name}</div>
+                        <div class="sc-type">${p.fitur || ''}</div>
+                    </div>
+                    <div class="sc-foot">
+                        <span class="sc-tag"><i class="fas fa-circle-check"></i> ${p.website_url ? 'Live Demo' : 'Preview'}</span>
+                        <button class="sc-prev" onclick="previewSiapJual('${p.id}')"><i class="fas fa-eye"></i> Lihat Preview</button>
+                    </div>
+                </div>`;
+            });
+            c.innerHTML = h;
+        }
+
+        function renderCatGroups(type) {
+            const c = document.getElementById('catGroups');
+            let groups = [];
+            if (type === 'website') {
+                groups = [
+                    { name: 'KELOMPOK 1 — INFORMASI & PROFIL', dot: 'purple', count: 5, items: [
+                        { name: 'Website Profil / Perusahaan / Usaha', price: 'Rp 500.000 — Rp 4.000.000', desc: 'Fungsi: Menampilkan identitas lengkap usaha: nama, logo, visi misi, sejarah, struktur pengurus, daftar layanan/jasa, galeri kegiatan, alamat lengkap, peta lokasi, kontak, dan tautan media sosial.' },
+                        { name: 'Website Pendidikan / Sekolah / Kampus', price: 'Rp 800.000 — Rp 5.000.000', desc: 'Fungsi: Profil sekolah, jadwal pelajaran, kalender akademik, pengumuman penting, materi belajar, galeri foto, pendaftaran siswa baru.' },
+                        { name: 'Website Berita / Portal Informasi', price: 'Rp 1.200.000 — Rp 7.000.000', desc: 'Fungsi: Menerbitkan tulisan, berita, artikel. Dilengkapi kategori, pencarian, sistem penulis, arsip, berbagi ke media sosial.' },
+                        { name: 'Blog / Catatan Pribadi', price: 'Rp 300.000 — Rp 2.000.000', desc: 'Fungsi: Menuliskan pengalaman, cerita, catatan belajar, panduan. Topik, arsip, komentar. Bersih & mudah dibaca.' },
+                        { name: 'Website Portofolio / Karya', price: 'Rp 400.000 — Rp 2.500.000', desc: 'Fungsi: Bukti hasil kerja: foto proyek, tautan website, contoh desain, tulisan, atau sertifikat. Halaman tentang diri & kontak.' }
+                    ]},
+                    { name: 'KELOMPOK 2 — JUAL BELI & TRANSAKSI', dot: 'green', count: 4, items: [
+                        { name: 'Toko Online / E-Commerce', price: 'Rp 2.500.000 — Rp 15.000.000+', desc: 'Fungsi: Katalog barang, keranjang belanja, ongkir, pembayaran (transfer/QRIS), tracking order, dashboard admin.' },
+                        { name: 'Katalog Produk / Daftar Harga', price: 'Rp 800.000 — Rp 3.500.000', desc: 'Fungsi: Daftar barang, foto, deskripsi, harga. TANPA pembayaran langsung, order via WhatsApp/telepon.' },
+                        { name: 'Marketplace / Pasar Penjual', price: 'Rp 8.000.000 — Rp 25.000.000+', desc: 'Fungsi: Multi-vendor. Tiap penjual punya toko sendiri, sistem komisi, verifikasi penjual, manajemen saldo.' },
+                        { name: 'Gerbang Pembayaran / Sistem Keuangan', price: 'Rp 10.000.000 — Rp 50.000.000+', desc: 'Fungsi: Menghubungkan pembayaran antar layanan. Enkripsi data tinggi, izin resmi.' }
+                    ]},
+                    { name: 'KELOMPOK 3 — LAYANAN & APLIKASI', dot: 'orange', count: 7, items: [
+                        { name: 'Web Aplikasi / Sistem Khusus', price: 'Rp 3.000.000 — Rp 12.000.000+', desc: 'Fungsi: Program berbasis browser: perhitungan, formulir, laporan otomatis, sistem absensi, inventaris, role akses.' },
+                        { name: 'Panel Bot / Otomatisasi', price: 'Rp 2.000.000 — Rp 8.000.000', desc: 'Fungsi: Mengatur WhatsApp/Telegram otomatis: pesan terjadwal, auto-reply, statistik pesan, status bot.' },
+                        { name: 'Penyimpanan / Manajemen Berkas', price: 'Rp 2.500.000 — Rp 9.000.000', desc: 'Fungsi: Upload, kelola, download file. Hak akses, share link, backup otomatis.' },
+                        { name: 'Pemantauan / Monitoring', price: 'Rp 3.000.000 — Rp 10.000.000', desc: 'Fungsi: Monitoring server/web load, uptime, traffic, grafik alert, notifikasi otomatis.' },
+                        { name: 'Reservasi / Pemesanan Jadwal', price: 'Rp 1.500.000 — Rp 6.000.000', desc: 'Fungsi: Pemesanan tanggal/jam booking, slot tracking, notifikasi, konfirmasi.' },
+                        { name: 'Penyimpanan Email / Arsip Pesan', price: 'Rp 2.500.000 — Rp 8.000.000', desc: 'Fungsi: Inbox terstruktur, filter arsip, pencarian cepat, manajemen email bisnis.' },
+                        { name: 'Server Cloud / Infrastruktur', price: 'Rp 5.000.000 — Rp 20.000.000+', desc: 'Fungsi: Pengelolaan compute, memory, storage, network, security, backup, resource monitoring.' }
+                    ]},
+                    { name: 'KELOMPOK 4 — KOMUNITAS & INTERAKSI', dot: 'blue', count: 3, items: [
+                        { name: 'Komunitas / Organisasi / Klub', price: 'Rp 700.000 — Rp 4.000.000', desc: 'Fungsi: Direktori anggota, profil pengurus, program komunitas, manajemen akses anggota.' },
+                        { name: 'Forum / Diskusi', price: 'Rp 2.000.000 — Rp 8.000.000', desc: 'Fungsi: Thread percakapan topik, balasan update, sistem moderasi, manajemen kategori.' },
+                        { name: 'Turnamen / Kompetisi', price: 'Rp 1.500.000 — Rp 6.000.000', desc: 'Fungsi: Registrasi tim, bracket pertandingan, skor live, leaderboard & hasil.' }
+                    ]},
+                    { name: 'KELOMPOK 5 — SISTEM & MANAJEMEN', dot: 'red', count: 2, items: [
+                        { name: 'Panel Admin / Sistem Manajemen', price: 'Rp 2.000.000 — Rp 7.500.000', desc: 'Fungsi: Pusat kontrol CRUD, manajemen role akses, audit log, backup/restore.' },
+                        { name: 'Analitik / Laporan Data', price: 'Rp 2.000.000 — Rp 6.500.000', desc: 'Fungsi: Visualisasi metrik bisnis, statistik pengguna, grafik tren harian/bulanan/tahunan.' }
+                    ]}
+                ];
+            } else {
+                groups = [
+                    { name: 'KELOMPOK 1 — INFORMASI & PROFIL', dot: 'purple', count: 3, items: [
+                        { name: 'Aplikasi Profil / Perusahaan', price: 'Rp 800.000 — Rp 5.000.000', desc: 'Fungsi: Identitas usaha di mobile & desktop sebagai kartu nama digital.' },
+                        { name: 'Aplikasi Pendidikan / Sekolah', price: 'Rp 1.200.000 — Rp 7.000.000', desc: 'Fungsi: Jadwal, materi, tugas, nilai & rapor, pendaftaran siswa baru.' },
+                        { name: 'Aplikasi Berita / Portal', price: 'Rp 1.500.000 — Rp 9.000.000', desc: 'Fungsi: Berita, artikel, kategori, pencarian, simpan favorit, share ke sosmed.' }
+                    ]},
+                    { name: 'KELOMPOK 2 — JUAL BELI & KEUANGAN', dot: 'green', count: 4, items: [
+                        { name: 'Aplikasi Toko Online', price: 'Rp 3.500.000 — Rp 20.000.000+', desc: 'Fungsi: Katalog, keranjang, ongkir otomatis, pembayaran digital, tracking order.' },
+                        { name: 'Aplikasi Katalog Produk', price: 'Rp 1.000.000 — Rp 4.500.000', desc: 'Fungsi: Daftar barang, foto, deskripsi, harga. Order via WhatsApp/telepon.' },
+                        { name: 'Aplikasi Marketplace', price: 'Rp 12.000.000 — Rp 35.000.000+', desc: 'Fungsi: Multi-vendor, komisi, verifikasi penjual, penarikan saldo, laporan per penjual.' },
+                        { name: 'Aplikasi Pembayaran / Dompet Digital', price: 'Rp 15.000.000 — Rp 60.000.000+', desc: 'Fungsi: Saldo, transfer dana, riwayat transaksi, biaya admin, integrasi layanan pembayaran.' }
+                    ]},
+                    { name: 'KELOMPOK 3 — LAYANAN & OTOMATISASI', dot: 'orange', count: 5, items: [
+                        { name: 'Aplikasi Layanan Khusus', price: 'Rp 4.000.000 — Rp 15.000.000+', desc: 'Fungsi: Sistem absensi, inventaris, perhitungan gaji, manajemen persediaan.' },
+                        { name: 'Aplikasi Panel Bot / Otomatisasi', price: 'Rp 3.000.000 — Rp 10.000.000', desc: 'Fungsi: Bot WhatsApp/Telegram, pesan terjadwal, auto-reply, statistik pesan.' },
+                        { name: 'Aplikasi Penyimpanan Berkas', price: 'Rp 3.500.000 — Rp 12.000.000', desc: 'Fungsi: Upload, kelola, download file, hak akses, share link, backup otomatis.' },
+                        { name: 'Aplikasi Pemantauan / Monitoring', price: 'Rp 4.000.000 — Rp 14.000.000', desc: 'Fungsi: Monitoring uptime, load, traffic, alert, grafik realtime.' },
+                        { name: 'Aplikasi Reservasi / Booking', price: 'Rp 2.000.000 — Rp 8.000.000', desc: 'Fungsi: Booking tanggal/jam, slot tracking, notifikasi, konfirmasi admin & pemesan.' }
+                    ]},
+                    { name: 'KELOMPOK 4 — KOMUNITAS & SOSIAL', dot: 'blue', count: 3, items: [
+                        { name: 'Aplikasi Komunitas / Organisasi', price: 'Rp 1.200.000 — Rp 6.000.000', desc: 'Fungsi: Direktori anggota, pengurus, program, manajemen akses.' },
+                        { name: 'Aplikasi Forum / Diskusi / Sosial', price: 'Rp 3.000.000 — Rp 12.000.000', desc: 'Fungsi: Topik, balasan, moderasi, notifikasi, manajemen kategori.' },
+                        { name: 'Aplikasi Turnamen / Kompetisi', price: 'Rp 2.500.000 — Rp 9.000.000', desc: 'Fungsi: Registrasi, bracket, skor live, leaderboard, hasil pertandingan.' }
+                    ]},
+                    { name: 'KELOMPOK 5 — SISTEM & ANALITIK', dot: 'red', count: 2, items: [
+                        { name: 'Aplikasi Panel Admin', price: 'Rp 3.000.000 — Rp 9.000.000', desc: 'Fungsi: CRUD, manajemen role, audit log, backup/restore.' },
+                        { name: 'Aplikasi Analitik / Laporan Data', price: 'Rp 2.500.000 — Rp 8.000.000', desc: 'Fungsi: Visualisasi metrik, statistik pengguna, grafik tren.' }
+                    ]}
+                ];
+            }
+            let h = '';
+            groups.forEach(g => {
+                h += `
+                <div class="cat-group">
+                    <div class="cat-group-head">
+                        <div class="cg-title"><span class="cg-dot ${g.dot}"></span>${g.name}</div>
+                        <div class="cg-count">${g.count} Kategori</div>
+                    </div>
+                    <div class="cg-grid">
+                        ${g.items.map(it => `
+                            <div class="cg-item">
+                                <div class="cg-name">${it.name}</div>
+                                <div class="cg-price">${it.price}</div>
+                                <div class="cg-desc">${it.desc}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>`;
+            });
+            c.innerHTML = h;
+        }
+
+        function switchCat(type) {
+            currentCat = type;
+            document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
+            document.querySelector(`.cat-tab[data-cat="${type}"]`).classList.add('active');
+            renderCatGroups(type);
+        }
+
+        function updateWaLinks() {
+            if (!data) return;
+            const wp = data.social.whatsapp || '6283148864663';
+            const wa = data.social.whatsapp_asisten || '6285761744850';
+            const msg = encodeURIComponent(`Halo, saya mau pesan jasa pembuatan website/aplikasi.\n\n📋 Jenis Layanan: [Isi nama kategori]\n✅ Fitur Tambahan: [Sebutkan jika ada keinginan khusus]\n📌 Keterangan Lain: [Isi kebutuhan khusus, nama proyek, atau hal yang diinginkan]\n\nMohon info harga, waktu pengerjaan, dan penjelasan selanjutnya. Terima kasih.`);
+            const l1 = `https://wa.me/${wp}?text=${msg}`;
+            const l2 = `https://wa.me/${wa}?text=${msg}`;
+            ['ctaWa','osWaPemilik','osHelpBtn'].forEach(id => { const el = document.getElementById(id); if (el) el.href = l1; });
+            const el = document.getElementById('osWaAsisten'); if (el) el.href = l2;
+        }
+
+        function previewSiapJual(id) {
+            const it = data.siapjual.find(x => x.id === id);
+            if (!it) return;
+            const hasUrl = it.website_url && it.website_url.length > 0;
+            const wp = data.social.whatsapp || '6283148864663';
+            const waMsg = encodeURIComponent(`saya tertarik dengan website ${it.name} / ${it.website_url || ''} yang anda jual. Bisa Jelaskan Lebih Detail Tentang Website Ini?`);
+            const waLink = `https://wa.me/${wp}?text=${waMsg}`;
+            const iframe = hasUrl ? `
+                <iframe class="pv-iframe" src="${it.website_url}" sandbox="allow-same-origin allow-scripts allow-popups allow-forms" loading="lazy"></iframe>
+                <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;">
+                    <a href="${it.website_url}" target="_blank" class="btn btn-primary"><i class="fas fa-external-link-alt"></i> Buka Tab Baru</a>
+                    <a href="${waLink}" target="_blank" class="btn" style="background:linear-gradient(135deg,#10b981,#059669);color:#fff;border:none;"><i class="fab fa-whatsapp"></i> Beli Sekarang</a>
+                    <button class="btn" onclick="closePreviewModal()">Tutup</button>
+                </div>` : `
+                <div class="pv-placeholder">
+                    <i class="fas fa-link"></i>
+                    <p style="font-size:12px;">Tidak ada URL website untuk pratinjau.</p>
+                    <a href="${waLink}" target="_blank" class="btn" style="background:linear-gradient(135deg,#10b981,#059669);color:#fff;border:none;"><i class="fab fa-whatsapp"></i> Beli Sekarang</a>
+                    <button class="btn" onclick="closePreviewModal()">Tutup</button>
+                </div>`;
+            document.getElementById('previewModalContent').innerHTML = `<div class="modal-title">Preview — ${it.name}</div>${iframe}`;
+            document.getElementById('previewModalOverlay').classList.add('open');
+        }
+        function closePreviewModal() {
+            document.getElementById('previewModalOverlay').classList.remove('open');
+            const f = document.querySelector('#previewModalContent iframe');
+            if (f) f.src = 'about:blank';
+        }
+
+        let curPage = 'beranda';
+        function navigateTo(page) {
+            document.getElementById('page-beranda').classList.remove('active');
+            document.getElementById('page-dinamis').classList.add('active');
+            curPage = page;
+            const titles = {
+                profil: 'Profil Saya', karya: 'Karya & Proyek', mywebsites: 'Website Saya',
+                websites: 'Siap Jual', skills: 'Keahlian', grafik: 'Grafik & Data',
+                blog: 'Catatan Pengembangan', testimoni: 'Testimoni', layanan: 'Layanan & Jasa',
+                unduhan: 'Unduhan', kontak: 'Kontak', admin: 'Dashboard Admin'
+            };
+            document.getElementById('dynamicPageTitle').textContent = titles[page] || page;
+            renderDynamicContent(page);
+            window.scrollTo(0, 0);
+        }
+        function goHome() {
+            document.getElementById('page-beranda').classList.add('active');
+            document.getElementById('page-dinamis').classList.remove('active');
+            curPage = 'beranda';
+            renderAll();
+            window.scrollTo(0, 0);
+        }
+
+        function renderDynamicContent(page) {
+            if (!data) return;
+            const c = document.getElementById('dynamicContent');
+            if (!page) page = curPage;
+            switch (page) {
+                case 'profil': c.innerHTML = renderProfilPage(); break;
+                case 'karya': c.innerHTML = renderKaryaPage(); break;
+                case 'mywebsites': c.innerHTML = renderMyWebsitesPage(); break;
+                case 'websites': c.innerHTML = renderSiapJualPage(); break;
+                case 'skills': c.innerHTML = renderSkillsPage(); break;
+                case 'grafik': c.innerHTML = renderGrafikPage(); setTimeout(() => drawCharts(), 100); break;
+                case 'blog': c.innerHTML = renderBlogPage(); break;
+                case 'testimoni': c.innerHTML = renderTestimoniPage(); break;
+                case 'layanan': c.innerHTML = renderLayananPage(); break;
+                case 'unduhan': c.innerHTML = renderUnduhanPage(); break;
+                case 'kontak': c.innerHTML = renderKontakPage(); break;
+                case 'admin': c.innerHTML = renderAdminPage(); break;
+                default: c.innerHTML = '<div style="text-align:center;padding:60px;color:var(--text3);">Halaman tidak ditemukan</div>';
+            }
+        }
+
+        function renderProfilPage() {
+            const p = data.profile;
+            const photo = p.photo ? `<img src="${p.photo}" style="width:120px;height:120px;border-radius:50%;object-fit:cover;border:3px solid rgba(139,92,246,0.3);" />` : `<div style="width:120px;height:120px;border-radius:50%;background:var(--gradient);display:flex;align-items:center;justify-content:center;font-size:44px;color:#fff;margin:0 auto;font-weight:800;box-shadow:0 12px 30px rgba(99,102,241,0.4);">${(p.name||'W').charAt(0)}</div>`;
+            return `<div style="text-align:center;margin-bottom:20px;">${photo}</div>
+            <div class="item-card">
+                <div class="item-title">${p.name || 'Nama belum diisi'}</div>
+                <div class="item-desc">${p.bio || 'Deskripsi belum diisi'}</div>
+                <div class="item-meta">
+                    <span><i class="fab fa-instagram"></i> ${data.social.instagram || '-'}</span>
+                    <span><i class="fab fa-youtube"></i> ${data.social.youtube || '-'}</span>
+                    <span><i class="fab fa-tiktok"></i> ${data.social.tiktok || '-'}</span>
+                    <span><i class="fas fa-envelope"></i> ${data.social.email || '-'}</span>
+                    <span><i class="fab fa-whatsapp"></i> ${data.social.whatsapp || '-'}</span>
+                </div>
+            </div>`;
+        }
+
+        function renderKaryaPage() {
+            const items = data.karya || [];
+            let h = `<div style="margin-bottom:14px;color:var(--text3);font-size:11px;letter-spacing:0.5px;">${items.length} KARYA</div>`;
+            if (!items.length) h += '<div style="text-align:center;padding:60px;color:var(--text3);font-size:12px;">Belum ada karya</div>';
+            else items.forEach(k => { h += `<div class="item-card">${k.image ? `<img class="item-img" src="${k.image}" />` : ''}<div class="item-title">${k.name}</div><div class="item-desc">${k.desc || ''}</div><div class="item-meta">${k.category || 'Umum'} • ${k.year || '-'}</div></div>`; });
+            return h;
+        }
+
+        function renderMyWebsitesPage() {
+            const items = data.websites || [];
+            let h = `<div style="margin-bottom:14px;color:var(--text3);font-size:11px;letter-spacing:0.5px;">${items.length} WEBSITE</div>`;
+            if (!items.length) h += '<div style="text-align:center;padding:60px;color:var(--text3);font-size:12px;">Belum ada website</div>';
+            else items.forEach(w => {
+                const badge = w.status === 'Aktif' ? 'badge-success' : 'badge-warning';
+                h += `<div class="item-card">${w.image ? `<img class="item-img" src="${w.image}" />` : ''}<div class="item-title">${w.name}</div><div class="item-desc">${w.domain || '-'}</div><div class="item-meta">${w.fungsi || '-'} <span class="badge ${badge}">${w.status || 'Draft'}</span></div>${w.domain ? `<a href="https://${w.domain}" target="_blank" class="btn btn-primary btn-sm" style="margin-top:10px;"><i class="fas fa-external-link-alt"></i> Buka</a>` : ''}</div>`;
+            });
+            return h;
+        }
+
+        function renderSiapJualPage() {
+            const items = data.siapjual || [];
+            let h = `<div style="margin-bottom:14px;color:var(--text3);font-size:11px;letter-spacing:0.5px;">${items.length} PRODUK</div>`;
+            if (!items.length) h += '<div style="text-align:center;padding:60px;color:var(--text3);font-size:12px;">Belum ada produk</div>';
+            else items.forEach(p => {
+                const hasUrl = p.website_url && p.website_url.length > 0;
+                const wp = data.social.whatsapp || '6283148864663';
+                const waLink = `https://wa.me/${wp}?text=${encodeURIComponent(`saya tertarik dengan website ${p.name}`)}`;
+                h += `<div class="item-card">${p.image ? `<img class="item-img" src="${p.image}" />` : ''}<div class="item-title">${p.name}</div><div class="item-desc" style="color:var(--orange2);font-weight:700;">${p.price || '-'}</div><div class="item-meta">${p.fitur || '-'}</div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;">${hasUrl ? `<a href="${p.website_url}" target="_blank" class="btn btn-primary btn-sm"><i class="fas fa-external-link-alt"></i> Buka</a>` : ''}<a href="${waLink}" target="_blank" class="btn btn-sm" style="background:linear-gradient(135deg,#10b981,#059669);color:#fff;border:none;"><i class="fab fa-whatsapp"></i> Beli</a><button class="btn btn-sm" onclick="previewSiapJual('${p.id}')"><i class="fas fa-eye"></i> Preview</button></div></div>`;
+            });
+            return h;
+        }
+
+        function renderSkillsPage() {
+            const items = data.skills || [];
+            let h = `<div style="margin-bottom:14px;color:var(--text3);font-size:11px;letter-spacing:0.5px;">${items.length} KEAHLIAN</div>`;
+            if (!items.length) h += '<div style="text-align:center;padding:60px;color:var(--text3);font-size:12px;">Belum ada keahlian</div>';
+            else {
+                const lc = { 'Pemula': 'badge-warning', 'Menengah': 'badge-info', 'Ahli': 'badge-success' };
+                items.forEach(s => { h += `<div class="item-card"><div class="item-title">${s.name}</div><div class="item-meta"><span class="badge ${lc[s.level] || 'badge-info'}">${s.level || 'Menengah'}</span></div></div>`; });
+            }
+            return h;
+        }
+
+        function renderGrafikPage() {
+            const sc = data.skills.length, kc = data.karya.length, wc = data.websites.length, sj = data.siapjual.length;
+            return `<p style="color:var(--text3);margin-bottom:14px;font-size:11px;letter-spacing:0.5px;">DATA OTOMATIS</p>
+            <div class="chart-wrap"><canvas id="ch1"></canvas></div>
+            <div class="chart-wrap"><canvas id="ch2"></canvas></div>
+            <div class="item-card" style="text-align:center;">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+                    <div><strong style="font-size:20px;">${sc}</strong><br /><small style="color:var(--text3);font-size:10px;letter-spacing:0.5px;">KEAHLIAN</small></div>
+                    <div><strong style="font-size:20px;">${kc}</strong><br /><small style="color:var(--text3);font-size:10px;letter-spacing:0.5px;">KARYA</small></div>
+                    <div><strong style="font-size:20px;">${wc}</strong><br /><small style="color:var(--text3);font-size:10px;letter-spacing:0.5px;">WEBSITE</small></div>
+                    <div><strong style="font-size:20px;">${sj}</strong><br /><small style="color:var(--text3);font-size:10px;letter-spacing:0.5px;">SIAP JUAL</small></div>
+                </div>
+            </div>`;
+        }
+
+        function drawCharts() {
+            const sc = data.skills.length, kc = data.karya.length, wc = data.websites.length, sj = data.siapjual.length;
+            const c1 = document.getElementById('ch1');
+            if (c1) new Chart(c1, { type: 'doughnut', data: { labels: ['Keahlian','Karya','Website','Siap Jual'], datasets: [{ data: [sc,kc,wc,sj], backgroundColor: ['#6366f1','#a855f7','#0ea5e9','#10b981'], borderWidth: 0 }] }, options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8', font: { size: 10 }, padding: 12, boxWidth: 9, boxHeight: 9 } } } } });
+            const c2 = document.getElementById('ch2');
+            if (c2) new Chart(c2, { type: 'bar', data: { labels: ['Keahlian','Karya','Website','Siap Jual'], datasets: [{ label: 'Jumlah', data: [sc,kc,wc,sj], backgroundColor: '#6366f1', borderRadius: 6 }] }, options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#64748b', font: { size: 9 } } }, x: { grid: { display: false }, ticks: { color: '#64748b', font: { size: 9 } } } } } });
+        }
+
+        function renderBlogPage() {
+            const items = data.blog || [];
+            let h = `<div style="margin-bottom:14px;color:var(--text3);font-size:11px;letter-spacing:0.5px;">${items.length} CATATAN</div>`;
+            if (!items.length) h += '<div style="text-align:center;padding:60px;color:var(--text3);font-size:12px;">Belum ada catatan</div>';
+            else items.forEach(b => { h += `<div class="item-card"><div class="item-title">${b.title}</div><div class="item-desc">${b.content ? b.content.substring(0,120)+'...' : ''}</div><div class="item-meta">${b.date || '-'}</div></div>`; });
+            return h;
+        }
+
+        function renderTestimoniPage() {
+            const items = data.testimoni || [];
+            let h = `<div style="margin-bottom:14px;color:var(--text3);font-size:11px;letter-spacing:0.5px;">${items.length} TESTIMONI</div>`;
+            if (!items.length) h += '<div style="text-align:center;padding:60px;color:var(--text3);font-size:12px;">Belum ada testimoni</div>';
+            else items.forEach(t => {
+                const stars = '★'.repeat(Math.min(t.rating || 5, 5)) + '☆'.repeat(5 - Math.min(t.rating || 5, 5));
+                h += `<div class="item-card"><div class="item-title">${t.name}</div><div style="color:var(--orange2);font-size:14px;letter-spacing:2px;margin:6px 0;">${stars}</div><div class="item-desc" style="font-style:italic;">"${t.text || ''}"</div></div>`;
+            });
+            return h;
+        }
+
+        function renderLayananPage() {
+            const items = data.layanan || [];
+            let h = `<div style="margin-bottom:14px;color:var(--text3);font-size:11px;letter-spacing:0.5px;">${items.length} LAYANAN</div>`;
+            if (!items.length) h += '<div style="text-align:center;padding:60px;color:var(--text3);font-size:12px;">Belum ada layanan</div>';
+            else items.forEach(l => { h += `<div class="item-card"><div class="item-title">${l.name}</div><div class="item-desc">${l.desc || ''}</div><div class="item-meta">${l.price || '-'}</div></div>`; });
+            return h;
+        }
+
+        function renderUnduhanPage() {
+            const items = data.unduhan || [];
+            let h = `<div style="margin-bottom:14px;color:var(--text3);font-size:11px;letter-spacing:0.5px;">${items.length} FILE</div>`;
+            if (!items.length) h += '<div style="text-align:center;padding:60px;color:var(--text3);font-size:12px;">Belum ada file</div>';
+            else items.forEach(u => { h += `<div class="item-card"><div class="item-title"><i class="fas fa-file" style="margin-right:8px;color:var(--text3);"></i>${u.name}</div><div class="item-meta">${u.file || '-'}</div></div>`; });
+            return h;
+        }
+
+        function renderKontakPage() {
+            const wp = data.social.whatsapp || '6283148864663';
+            const wa = data.social.whatsapp_asisten || '6285761744850';
+            return `<div style="text-align:center;padding:16px 0 24px;">
+                <div style="width:60px;height:60px;border-radius:16px;background:var(--gradient);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:22px;color:#fff;box-shadow:0 12px 30px rgba(99,102,241,0.4);"><i class="fas fa-envelope"></i></div>
+                <h3 style="font-size:20px;font-weight:800;letter-spacing:-0.5px;">Hubungi Kami</h3>
+                <p style="color:var(--text3);margin-top:6px;font-size:12px;">Pilih saluran komunikasi favorit Anda</p>
+            </div>
+            <div class="item-card">
+                <div class="fg"><label>Nama</label><input id="kn" placeholder="Nama Anda" /></div>
+                <div class="fg"><label>Email</label><input id="ke" placeholder="email@contoh.com" /></div>
+                <div class="fg"><label>Pesan</label><textarea id="kp" placeholder="Tulis pesan..."></textarea></div>
+                <button class="btn btn-primary" style="width:100%;justify-content:center;" onclick="kirimPesan()"><i class="fas fa-paper-plane"></i> Kirim Pesan</button>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px;margin-top:14px;">
+                <a href="https://wa.me/${wp}" target="_blank" class="btn" style="justify-content:center;background:linear-gradient(135deg,#10b981,#059669);color:#fff;border:none;padding:12px;"><i class="fab fa-whatsapp"></i> WhatsApp Pemilik</a>
+                <a href="https://wa.me/${wa}" target="_blank" class="btn" style="justify-content:center;background:linear-gradient(135deg,#0ea5e9,#0284c7);color:#fff;border:none;padding:12px;"><i class="fas fa-robot"></i> Asisten Virtual</a>
+                <a href="${data.social.instagram || '#'}" target="_blank" class="btn" style="justify-content:center;padding:12px;"><i class="fab fa-instagram"></i> Instagram</a>
+                <a href="${data.social.youtube || '#'}" target="_blank" class="btn" style="justify-content:center;padding:12px;"><i class="fab fa-youtube"></i> YouTube</a>
+                <a href="${data.social.tiktok || '#'}" target="_blank" class="btn" style="justify-content:center;padding:12px;"><i class="fab fa-tiktok"></i> TikTok</a>
+                <a href="${data.social.email || '#'}" target="_blank" class="btn" style="justify-content:center;padding:12px;"><i class="fas fa-envelope"></i> Email</a>
+            </div>`;
+        }
+
+        function kirimPesan() {
+            const n = document.getElementById('kn').value.trim() || 'Anonim';
+            toast(`Pesan dari ${n} terkirim!`, 'success');
+            document.getElementById('kn').value = '';
+            document.getElementById('ke').value = '';
+            document.getElementById('kp').value = '';
+        }
+
+        function renderAdminPage() {
+            const total = (data.karya?.length||0)+(data.websites?.length||0)+(data.siapjual?.length||0)+(data.skills?.length||0)+(data.blog?.length||0)+(data.testimoni?.length||0)+(data.layanan?.length||0)+(data.unduhan?.length||0);
+            const tabs = [
+                { key:'profil', label:'Profil', icon:'fa-user' },
+                { key:'karya', label:'Karya', icon:'fa-paint-brush' },
+                { key:'mywebsites', label:'Website', icon:'fa-globe' },
+                { key:'websites', label:'Siap Jual', icon:'fa-shopping-bag' },
+                { key:'skills', label:'Keahlian', icon:'fa-tools' },
+                { key:'blog', label:'Blog', icon:'fa-pen' },
+                { key:'testimoni', label:'Testi', icon:'fa-star' },
+                { key:'layanan', label:'Layanan', icon:'fa-briefcase' },
+                { key:'unduhan', label:'Unduhan', icon:'fa-file' },
+                { key:'backup', label:'Backup', icon:'fa-database' }
+            ];
+            let navH = '<div class="admin-tabs">';
+            tabs.forEach((t,i) => navH += `<button class="nav-tab ${i===0?'active':''}" data-tab="${t.key}" onclick="switchTab('${t.key}')"><i class="fas ${t.icon}"></i> ${t.label}</button>`);
+            navH += '</div>';
+            let contentH = '';
+            tabs.forEach((t,i) => {
+                contentH += `<div class="admin-sec ${i===0?'open':''}" data-sec="${t.key}" id="sec_${t.key}">`;
+                if (t.key === 'profil') contentH += adminProfilForm();
+                else if (t.key === 'karya') contentH += adminList('karya', data.karya, 'Karya');
+                else if (t.key === 'mywebsites') contentH += adminList('websites', data.websites, 'Website Saya');
+                else if (t.key === 'websites') contentH += adminList('siapjual', data.siapjual, 'Siap Jual');
+                else if (t.key === 'skills') contentH += adminList('skills', data.skills, 'Keahlian');
+                else if (t.key === 'blog') contentH += adminList('blog', data.blog, 'Catatan');
+                else if (t.key === 'testimoni') contentH += adminList('testimoni', data.testimoni, 'Testimoni');
+                else if (t.key === 'layanan') contentH += adminList('layanan', data.layanan, 'Layanan');
+                else if (t.key === 'unduhan') contentH += adminList('unduhan', data.unduhan, 'Unduhan');
+                else if (t.key === 'backup') contentH += adminBackupForm();
+                contentH += '</div>';
+            });
+            return `<div class="admin-stats">
+                <div class="stat-card"><div class="stat-icon purple"><i class="fas fa-layer-group"></i></div><div class="stat-value">${total}</div><div class="stat-label">Total Konten</div></div>
+                <div class="stat-card"><div class="stat-icon orange"><i class="fas fa-shopping-bag"></i></div><div class="stat-value">${data.siapjual?.length || 0}</div><div class="stat-label">Siap Jual</div></div>
+                <div class="stat-card"><div class="stat-icon blue"><i class="fas fa-globe"></i></div><div class="stat-value">${data.websites?.length || 0}</div><div class="stat-label">Website</div></div>
+                <div class="stat-card"><div class="stat-icon green"><i class="fas fa-paint-brush"></i></div><div class="stat-value">${data.karya?.length || 0}</div><div class="stat-label">Karya</div></div>
+            </div>${navH}${contentH}`;
+        }
+
+        function adminProfilForm() {
+            const p = data.profile, s = data.social;
+            return `<div class="admin-profile-card" style="margin-bottom:14px;">
+                ${p.photo ? `<img src="${p.photo}" class="admin-profile-photo" />` : `<div class="admin-profile-ph"><span>${(p.name||'W').charAt(0)}</span></div>`}
+                <button class="admin-add-btn" onclick="uploadProfilePhoto()"><i class="fas fa-camera"></i> Ubah Foto</button>
+            </div>
+            <div class="admin-form-card" style="margin-bottom:14px;">
+                <div class="form-title">Informasi Utama</div>
+                <div class="fg"><label>Nama Usaha</label><input id="apn" value="${p.name||''}" /></div>
+                <div class="fg"><label>Bio Singkat</label><textarea id="apb">${p.bio||''}</textarea></div>
+                <div class="form-title" style="margin-top:16px;">Media Sosial</div>
+                <div class="fg"><label>Instagram URL</label><input id="apig" value="${s.instagram||''}" /></div>
+                <div class="fg"><label>YouTube URL</label><input id="apyt" value="${s.youtube||''}" /></div>
+                <div class="fg"><label>TikTok URL</label><input id="aptt" value="${s.tiktok||''}" /></div>
+                <div class="fg"><label>Email</label><input id="apem" value="${s.email||''}" /></div>
+                <div class="form-title" style="margin-top:16px;">WhatsApp</div>
+                <div class="fg"><label>WhatsApp Pemilik</label><input id="apwa" value="${s.whatsapp||'6283148864663'}" /></div>
+                <div class="fg"><label>WhatsApp Asisten Virtual</label><input id="apwaa" value="${s.whatsapp_asisten||'6285761744850'}" /></div>
+                <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:6px;" onclick="saveProfil()"><i class="fas fa-save"></i> Simpan Perubahan</button>
+            </div>`;
+        }
+
+        async function saveProfil() {
+            data.profile.name = document.getElementById('apn').value.trim() || 'Waa-O51W';
+            data.profile.bio = document.getElementById('apb').value.trim() || 'Bisnis Digital, Solusi Web & Portofolio Kreatif';
+            data.social.instagram = document.getElementById('apig').value.trim() || '#';
+            data.social.youtube = document.getElementById('apyt').value.trim() || '#';
+            data.social.tiktok = document.getElementById('aptt').value.trim() || '#';
+            data.social.email = document.getElementById('apem').value.trim() || '#';
+            data.social.whatsapp = document.getElementById('apwa').value.trim() || '6283148864663';
+            data.social.whatsapp_asisten = document.getElementById('apwaa').value.trim() || '6285761744850';
+            await save();
+            toast('Profil disimpan!', 'success');
+            navigateTo('admin');
+        }
+
+        function adminList(key, items, label) {
+            let h = `<div class="sec-head-row"><div class="sec-title-admin">${label} <span class="count-pill">${items.length}</span></div><button class="admin-add-btn" onclick="adminAdd('${key}')"><i class="fas fa-plus"></i> Tambah</button></div>`;
+            if (!items.length) h += '<div style="text-align:center;padding:40px;color:var(--text3);font-size:12px;">Belum ada data</div>';
+            else items.forEach(it => {
+                const name = it.name || it.title || 'Item';
+                const sub = it.price || it.domain || it.level || it.date || it.category || it.file || (it.rating ? '★'.repeat(it.rating) : '');
+                h += `<div class="admin-li">
+                    ${it.image ? `<img src="${it.image}" class="li-thumb" />` : `<div class="li-thumb-ph"><i class="fas fa-image"></i></div>`}
+                    <div class="li-body"><div class="li-name">${name}</div><div class="li-meta">${sub ? `<span>${sub}</span>` : ''}</div></div>
+                    <div class="li-actions">
+                        <button class="li-btn edit" onclick="adminEdit('${key}','${it.id}')"><i class="fas fa-pen"></i></button>
+                        <button class="li-btn del" onclick="adminDel('${key}','${it.id}')"><i class="fas fa-trash"></i></button>
+                    </div>
+                </div>`;
+            });
+            return h;
+        }
+
+        function adminAdd(key) {
+            const f = getFields(key);
+            openModal(`<div class="modal-title">Tambah ${f.label}</div>${f.html}<button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:8px;" onclick="adminSaveNew('${key}')"><i class="fas fa-save"></i> Simpan</button>`);
+        }
+        function adminEdit(key, id) {
+            const item = data[key].find(x => x.id === id);
+            if (!item) return;
+            const f = getFields(key, item);
+            openModal(`<div class="modal-title">Edit ${f.label}</div>${f.html}<button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:8px;" onclick="adminSaveEdit('${key}','${id}')"><i class="fas fa-save"></i> Simpan</button>`);
+        }
+        async function adminSaveNew(key) {
+            const n = await collectFields(key);
+            if (!n) return;
+            n.id = key.substring(0,1) + Date.now();
+            data[key].push(n);
+            await save();
+            closeModal();
+            toast('Berhasil ditambahkan!', 'success');
+            navigateTo('admin');
+        }
+        async function adminSaveEdit(key, id) {
+            const it = data[key].find(x => x.id === id);
+            if (!it) return;
+            const u = await collectFields(key);
+            if (!u) return;
+            Object.assign(it, u);
+            await save();
+            closeModal();
+            toast('Berhasil diperbarui!', 'success');
+            navigateTo('admin');
+        }
+        async function adminDel(key, id) {
+            if (!confirm('Hapus item ini?')) return;
+            data[key] = data[key].filter(x => x.id !== id);
+            await save();
+            toast('Dihapus', 'error');
+            navigateTo('admin');
+        }
+
+        function getFields(key, item = null) {
+            const c = (n, l, t = 'text', e = '') => `<div class="fg"><label>${l}</label><input type="${t}" id="f_${n}" value="${item ? (item[n]||'') : ''}" ${e} /></div>`;
+            const ct = (n, l) => `<div class="fg"><label>${l}</label><textarea id="f_${n}">${item ? (item[n]||'') : ''}</textarea></div>`;
+            const cs = (n, l, o) => `<div class="fg"><label>${l}</label><select id="f_${n}">${o.map(x => `<option value="${x}" ${item && item[n]===x?'selected':''}>${x}</option>`).join('')}</select></div>`;
+            const fi = (n, l) => `<div class="fg"><label>${l}</label><input type="file" id="f_${n}" accept="image/*" />${item && item.image ? `<img src="${item.image}" style="max-height:70px;border-radius:8px;margin-top:8px;" />` : ''}</div>`;
+            const map = {
+                karya: { label:'Karya', html: c('name','Nama')+c('category','Kategori')+c('year','Tahun')+ct('desc','Deskripsi')+c('image','Gambar URL')+fi('image_file','Upload') },
+                websites: { label:'Website', html: c('name','Nama')+c('domain','Domain')+c('fungsi','Fungsi')+cs('status','Status',['Aktif','Draft'])+fi('image_file','Upload') },
+                siapjual: { label:'Siap Jual', html: c('name','Nama')+c('price','Harga')+c('fitur','Fitur')+c('website_url','URL Website')+fi('image_file','Upload') },
+                skills: { label:'Keahlian', html: c('name','Nama')+cs('level','Tingkat',['Pemula','Menengah','Ahli']) },
+                blog: { label:'Catatan', html: c('title','Judul')+ct('content','Konten')+c('date','Tanggal','date') },
+                testimoni: { label:'Testimoni', html: c('name','Nama')+c('rating','Rating 1-5','number','min="1" max="5"')+ct('text','Ulasan') },
+                layanan: { label:'Layanan', html: c('name','Nama')+ct('desc','Deskripsi')+c('price','Biaya') },
+                unduhan: { label:'Unduhan', html: c('name','Nama File')+c('file','Link') }
+            };
+            return map[key] || { label: key, html: '' };
+        }
+
+        async function collectFields(key) {
+            const map = {
+                karya:['name','category','year','desc','image'], websites:['name','domain','fungsi','status','image'],
+                siapjual:['name','price','fitur','website_url','image'], skills:['name','level'],
+                blog:['title','content','date'], testimoni:['name','rating','text'],
+                layanan:['name','desc','price'], unduhan:['name','file']
+            };
+            const fl = map[key] || []; const o = {}; let v = false;
+            const fi = document.getElementById('f_image_file');
+            let b64 = null;
+            if (fi && fi.files && fi.files.length > 0) {
+                try { b64 = await fileToBase64(fi.files[0]); } catch (e) { toast('Gagal baca file', 'error'); return null; }
+            }
+            for (let f of fl) {
+                const el = document.getElementById('f_' + f);
+                if (el) {
+                    let val = el.value.trim();
+                    if (f === 'image' && b64) val = b64;
+                    if (val) v = true;
+                    o[f] = val || '-';
+                }
+            }
+            if (!v) { toast('Isi minimal satu field!', 'error'); return null; }
+            return o;
+        }
+
+        function fileToBase64(f) {
+            return new Promise((res, rej) => { const r = new FileReader(); r.readAsDataURL(f); r.onload = () => res(r.result); r.onerror = rej; });
+        }
+
+        function adminBackupForm() {
+            return `<div class="admin-form-card" style="text-align:center;padding:30px 20px;">
+                <div style="width:56px;height:56px;border-radius:16px;background:var(--gradient);display:flex;align-items:center;justify-content:center;font-size:22px;color:#fff;margin:0 auto 14px;box-shadow:0 10px 24px rgba(99,102,241,0.4);"><i class="fas fa-database"></i></div>
+                <h4 style="font-size:15px;font-weight:800;margin-bottom:6px;">Backup & Restore Data</h4>
+                <p style="font-size:11.5px;color:var(--text3);margin-bottom:18px;line-height:1.6;">Semua data tersimpan di Firebase Firestore. Gunakan tombol di bawah untuk backup/restore.</p>
+                <div style="display:flex;flex-direction:column;gap:8px;">
+                    <button class="btn btn-primary" onclick="backupData()" style="justify-content:center;"><i class="fas fa-download"></i> Download Backup</button>
+                    <button class="btn" onclick="restoreData()" style="justify-content:center;"><i class="fas fa-upload"></i> Restore dari File</button>
+                    <button class="btn btn-danger" onclick="resetAll()" style="justify-content:center;"><i class="fas fa-trash"></i> Reset Semua Data</button>
+                </div>
+            </div>`;
+        }
+
+        function backupData() {
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = `waa051w_backup_${new Date().toISOString().split('T')[0]}.json`;
+            a.click(); URL.revokeObjectURL(url);
+            toast('Backup diunduh!', 'success');
+        }
+        function restoreData() {
+            const i = document.createElement('input'); i.type = 'file'; i.accept = '.json';
+            i.onchange = e => {
+                const f = e.target.files[0]; if (!f) return;
+                const r = new FileReader();
+                r.onload = async ev => {
+                    try {
+                        const rd = JSON.parse(ev.target.result);
+                        if (rd.profile && rd.social) {
+                            data = rd; await save();
+                            toast('Data dipulihkan!', 'success');
+                            navigateTo('admin');
+                        } else toast('File tidak valid', 'error');
+                    } catch (err) { toast('Gagal baca file', 'error'); }
+                };
+                r.readAsText(f);
+            };
+            i.click();
+        }
+        async function resetAll() {
+            if (!confirm('Reset semua data?')) return;
+            if (!confirm('Yakin? Tindakan ini tidak bisa dibatalkan!')) return;
+            data = getDefaultData();
+            await save();
+            toast('Data direset', 'error');
+            navigateTo('admin');
+        }
+
+        function switchTab(key) {
+            document.querySelectorAll('.admin-sec').forEach(el => el.classList.remove('open'));
+            document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
+            document.getElementById('sec_' + key)?.classList.add('open');
+            document.querySelector(`.nav-tab[data-tab="${key}"]`)?.classList.add('active');
+        }
+
+        function openAdmin() {
+            document.getElementById('pinOverlay').classList.add('open');
+            document.getElementById('pinInput').value = '';
+            document.getElementById('pinError').style.display = 'none';
+            document.getElementById('pinInput').focus();
+        }
+        function closePin() { document.getElementById('pinOverlay').classList.remove('open'); }
+        function verifyPin() {
+            if (document.getElementById('pinInput').value.trim() === '122009') {
+                closePin();
+                toast('Selamat datang Admin', 'success');
+                navigateTo('admin');
+            } else {
+                document.getElementById('pinError').style.display = 'block';
+                setTimeout(() => { document.getElementById('pinError').style.display = 'none'; }, 3000);
+            }
+        }
+        document.getElementById('pinInput')?.addEventListener('keydown', e => { if (e.key === 'Enter') verifyPin(); });
+
+        function toggleMobileMenu() { document.getElementById('mobileMenu').classList.toggle('open'); }
+        function closeMobile() { document.getElementById('mobileMenu').classList.remove('open'); }
+
+        function openModal(html) {
+            document.getElementById('modalContent').innerHTML = html;
+            document.getElementById('modalOverlay').classList.add('open');
+        }
+        function closeModal() { document.getElementById('modalOverlay').classList.remove('open'); }
+        function toast(msg, type = 'info') {
+            const el = document.getElementById('toast');
+            el.textContent = msg;
+            el.className = 'toast show ' + type;
+            clearTimeout(el._t);
+            el._t = setTimeout(() => el.classList.remove('show'), 3500);
+        }
+
+        function uploadProfilePhoto() {
+            const i = document.createElement('input'); i.type = 'file'; i.accept = 'image/*';
+            i.onchange = e => {
+                const f = e.target.files[0]; if (!f) return;
+                const r = new FileReader();
+                r.onload = async ev => {
+                    data.profile.photo = ev.target.result;
+                    await save();
+                    toast('Foto profil diperbarui!', 'success');
+                };
+                r.readAsDataURL(f);
+            };
+            i.click();
+        }
+
+        async function init() {
+            toast('Menghubungkan...', 'info');
+            await loadData();
+            startListener();
+            toast('Database terhubung', 'success');
+        }
+        init();
+
+        document.getElementById('modalOverlay')?.addEventListener('click', e => { if (e.target === document.getElementById('modalOverlay')) closeModal(); });
+        document.getElementById('previewModalOverlay')?.addEventListener('click', e => { if (e.target === document.getElementById('previewModalOverlay')) closePreviewModal(); });
+
+        console.log('🚀 Waa-O51W - Profile Card Design');
+    </script>
+
+</body>
+</html>
